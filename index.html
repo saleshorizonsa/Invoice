@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HorizonGET | Premium Country-Specific Invoice Generator</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons (Script version for easy usage) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="index.css">
+    <!-- QR Code Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Export & Monetization Features -->
+    <script src="export-features.js" defer></script>
+</head>
+<body>
+
+    <!-- ===== LANDING PAGE ===== -->
+    <div id="landing-page" class="hidden">
+
+        <!-- Nav -->
+        <nav class="landing-nav">
+            <div class="landing-nav-inner">
+                <img src="assets/horizon-logo.svg" alt="Horizon" class="landing-nav-logo">
+                <div class="landing-nav-actions">
+                    <button class="btn btn-sm btn-outline" onclick="openAuthModal('login')">Sign In</button>
+                    <button class="btn btn-sm btn-primary" onclick="openAuthModal('register','free')">Get Started Free</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="hero-eyebrow">
+                    <i data-lucide="globe-2"></i>
+                    <span>Supporting 7 countries &amp; tax systems</span>
+                </div>
+                <h1 class="hero-title">Professional Invoicing,<br><span class="hero-accent">Built for the World</span></h1>
+                <p class="hero-subtitle">Create country-compliant invoices in minutes. GST, VAT, and Sales Tax calculated automatically. QR payment codes included.</p>
+                <div class="hero-cta-group">
+                    <button class="btn btn-hero-primary" onclick="openAuthModal('register','free')">
+                        <i data-lucide="zap"></i>
+                        Get Started Free
+                    </button>
+                    <button class="btn btn-hero-outline" onclick="openAuthModal('login')">
+                        Sign In <i data-lucide="arrow-right"></i>
+                    </button>
+                </div>
+                <p class="hero-disclaimer">No credit card required &nbsp;·&nbsp; Always free to start</p>
+            </div>
+            <div class="hero-visual">
+                <div class="mock-invoice">
+                    <div class="mock-inv-header">
+                        <div class="mock-company">
+                            <div class="mock-logo-sq"></div>
+                            <div>
+                                <div class="mock-line w80"></div>
+                                <div class="mock-line w50 mt4"></div>
+                            </div>
+                        </div>
+                        <div class="mock-inv-badge">INVOICE</div>
+                    </div>
+                    <div class="mock-divider"></div>
+                    <div class="mock-inv-meta">
+                        <div><div class="mock-line w60"></div><div class="mock-line w40 mt4"></div></div>
+                        <div class="text-right"><div class="mock-line w50"></div><div class="mock-line w30 mt4"></div></div>
+                    </div>
+                    <div class="mock-table">
+                        <div class="mock-th"><span class="w50"></span><span></span><span></span><span></span></div>
+                        <div class="mock-tr"><span class="w55"></span><span></span><span></span><span></span></div>
+                        <div class="mock-tr"><span class="w40"></span><span></span><span></span><span></span></div>
+                        <div class="mock-tr"><span class="w60"></span><span></span><span></span><span></span></div>
+                    </div>
+                    <div class="mock-total-row">
+                        <span class="mock-total-label">Total Due</span>
+                        <span class="mock-total-val">$2,450.00</span>
+                    </div>
+                    <div class="mock-qr-row">
+                        <div class="mock-qr-box"><div class="mock-qr-inner"></div></div>
+                        <div><div class="mock-line w50"></div><div class="mock-line w70 mt4"></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features strip -->
+        <section class="features-section">
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon"><i data-lucide="globe-2"></i></div>
+                    <h4>7 Countries</h4>
+                    <p>US, UK, India, UAE, Saudi Arabia, Australia &amp; EU — each with correct tax rules built in.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i data-lucide="zap"></i></div>
+                    <h4>Instant Tax Calc</h4>
+                    <p>GST, VAT, and Sales Tax calculated automatically the moment you select a jurisdiction.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i data-lucide="qr-code"></i></div>
+                    <h4>QR Payment Codes</h4>
+                    <p>Every invoice includes a scannable QR code for bank transfer, UPI, or PayPal.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i data-lucide="shield-check"></i></div>
+                    <h4>Privacy First</h4>
+                    <p>All data stays on your device. No tracking, no servers on the free tier.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing section -->
+        <section class="pricing-section" id="pricing">
+            <div class="pricing-header">
+                <h2>Simple, Transparent Pricing</h2>
+                <p>Start free. Upgrade when your business grows.</p>
+                <div class="billing-toggle">
+                    <span class="toggle-label active" id="lbl-monthly">Monthly</span>
+                    <button class="toggle-switch" id="billing-toggle-btn" onclick="toggleBilling()" aria-label="Toggle billing period">
+                        <span class="toggle-knob"></span>
+                    </button>
+                    <span class="toggle-label" id="lbl-annual">Annual</span>
+                    <span class="save-badge">Save 25%</span>
+                </div>
+            </div>
+
+            <div class="pricing-cards-grid">
+
+                <!-- Free -->
+                <div class="pricing-card">
+                    <div class="plan-name">Free</div>
+                    <div class="price-block">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount">0</span>
+                        <span class="price-period">forever</span>
+                    </div>
+                    <p class="plan-tagline">Perfect for freelancers getting started</p>
+                    <button class="plan-cta plan-cta-free" onclick="openAuthModal('register','free')">Get Started Free</button>
+                    <ul class="plan-features">
+                        <li class="feat-yes"><i data-lucide="check"></i>Unlimited invoice creation</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>3 PDF exports per day</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>All 7 country tax systems</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>Email &amp; WhatsApp sharing</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>QR payment codes</li>
+                        <li class="feat-no"><i data-lucide="x"></i>Cloud backup</li>
+                        <li class="feat-no"><i data-lucide="x"></i>Remove watermark</li>
+                        <li class="feat-no"><i data-lucide="x"></i>Advanced analytics</li>
+                    </ul>
+                </div>
+
+                <!-- Pro (featured) -->
+                <div class="pricing-card pricing-card-pro">
+                    <div class="popular-badge"><i data-lucide="star"></i> Most Popular</div>
+                    <div class="plan-name">Pro</div>
+                    <div class="price-block">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount" id="pro-price">4.99</span>
+                        <span class="price-period" id="pro-period">/month</span>
+                    </div>
+                    <p class="plan-tagline" id="pro-tagline">Billed monthly · cancel anytime</p>
+                    <button class="plan-cta plan-cta-pro" onclick="openAuthModal('register','pro')">Start Free Trial</button>
+                    <ul class="plan-features">
+                        <li class="feat-yes"><i data-lucide="check"></i>Everything in Free</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>Unlimited PDF exports</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>Remove watermark</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>Custom company branding</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>Advanced analytics</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>Cloud data backup</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>Recurring invoices</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>Priority email support</li>
+                    </ul>
+                    <p class="plan-trial-note">14-day free trial · No credit card required</p>
+                </div>
+
+                <!-- Business -->
+                <div class="pricing-card pricing-card-biz">
+                    <div class="plan-name">Business</div>
+                    <div class="price-block">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount" id="biz-price">14.99</span>
+                        <span class="price-period" id="biz-period">/month</span>
+                    </div>
+                    <p class="plan-tagline" id="biz-tagline">Billed monthly · cancel anytime</p>
+                    <button class="plan-cta plan-cta-biz" onclick="openAuthModal('register','business')">Get Business Plan</button>
+                    <ul class="plan-features">
+                        <li class="feat-yes"><i data-lucide="check"></i>Everything in Pro</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>Team access (up to 5 users)</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>White-label invoices</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>QuickBooks &amp; Wave export</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>Bulk invoice generation</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>API access</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>Dedicated account manager</li>
+                        <li class="feat-yes"><i data-lucide="check"></i>24/7 priority support</li>
+                    </ul>
+                    <p class="plan-trial-note">14-day free trial · No credit card required</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Country flags strip -->
+        <section class="countries-section">
+            <p class="countries-label">Tax-compliant invoices for</p>
+            <div class="countries-list">
+                <span>🇺🇸 United States</span>
+                <span>🇬🇧 United Kingdom</span>
+                <span>🇮🇳 India</span>
+                <span>🇦🇪 UAE</span>
+                <span>🇸🇦 Saudi Arabia</span>
+                <span>🇦🇺 Australia</span>
+                <span>🇪🇺 European Union</span>
+            </div>
+        </section>
+
+        <!-- Bottom CTA -->
+        <section class="landing-cta-section">
+            <h2>Ready to invoice smarter?</h2>
+            <p>Join thousands of businesses creating professional invoices worldwide.</p>
+            <button class="btn btn-hero-primary" onclick="openAuthModal('register','free')">
+                <i data-lucide="zap"></i>
+                Create Your Free Account
+            </button>
+        </section>
+
+        <!-- Footer -->
+        <footer class="landing-footer">
+            <div class="footer-inner">
+                <img src="assets/horizon-logo.svg" alt="Horizon" class="footer-logo">
+                <p class="footer-copy">© 2026 Horizon. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#pricing">Pricing</a>
+                    <a href="#" onclick="openAuthModal('login'); return false;">Sign In</a>
+                    <a href="#" onclick="openAuthModal('register','free'); return false;">Get Started</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ===== AUTH MODAL ===== -->
+    <div id="auth-modal" class="auth-overlay hidden" onclick="handleAuthOverlayClick(event)">
+        <div class="auth-card">
+            <button class="auth-modal-close" onclick="closeAuthModal()"><i data-lucide="x"></i></button>
+            <div class="auth-header">
+                <div class="auth-logo-wrapper">
+                    <img src="assets/horizon-logo.svg" alt="Horizon" class="auth-logo-img">
+                </div>
+                <div id="auth-plan-banner" class="auth-plan-banner hidden">
+                    <i data-lucide="check-circle-2"></i>
+                    <span>Plan selected: <strong id="auth-plan-name"></strong></span>
+                </div>
+                <p class="auth-subtitle">Enterprise-Grade Invoicing Suite</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab-btn active" id="tab-login" onclick="switchAuthTab('login')">Sign In</button>
+                <button class="auth-tab-btn" id="tab-register" onclick="switchAuthTab('register')">Create Account</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <label for="login-email">Email Address</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="mail"></i>
+                        <input type="email" id="login-email" required placeholder="name@company.com">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Password</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span>Sign In</span>
+                    <i data-lucide="arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="reg-name">Your Name</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="user"></i>
+                            <input type="text" id="reg-name" required placeholder="John Doe">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-company">Company Name</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="building"></i>
+                            <input type="text" id="reg-company" required placeholder="Horizon Labs">
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="reg-email">Email Address</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="mail"></i>
+                        <input type="email" id="reg-email" required placeholder="john@horizonlabs.com">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="reg-password">Password</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="reg-password" required placeholder="Minimum 6 characters">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="reg-country">Default Country</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="globe"></i>
+                        <select id="reg-country" onchange="updateRegCountryDefaults()">
+                            <option value="US">United States (USD, Sales Tax)</option>
+                            <option value="UK">United Kingdom (GBP, VAT)</option>
+                            <option value="IN">India (INR, GST)</option>
+                            <option value="AU">Australia (AUD, GST)</option>
+                            <option value="AE">United Arab Emirates (AED, VAT)</option>
+                            <option value="SA">Saudi Arabia (SAR, VAT)</option>
+                            <option value="EU">European Union (EUR, VAT)</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span>Create Free Account</span>
+                    <i data-lucide="user-plus"></i>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Protected by HorizonGET secure credentials.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== APP ===== -->
+    <div id="app" class="app-container hidden">
+
+        <!-- Dashboard Layout (Sidebar + Content) -->
+        <div class="app-layout">
+            
+            <!-- Sidebar -->
+            <aside class="app-sidebar no-print">
+                <div class="sidebar-header">
+                    <img src="assets/horizon-logo.svg" alt="Horizon" class="sidebar-logo-img">
+                </div>
+
+                <div class="user-profile-badge">
+                    <div class="avatar" id="user-avatar-initials">HG</div>
+                    <div class="user-info">
+                        <h4 id="user-display-name">Guest User</h4>
+                        <span id="user-display-company">Horizon Labs</span>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <button class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Dashboard</span>
+                    </button>
+                    <button class="nav-item" id="nav-create" onclick="switchTab('create')">
+                        <i data-lucide="file-plus"></i>
+                        <span>Create Invoice</span>
+                    </button>
+                    <button class="nav-item" id="nav-history" onclick="switchTab('history')">
+                        <i data-lucide="file-text"></i>
+                        <span>Invoices & Share</span>
+                    </button>
+                    <button class="nav-item" id="nav-clients" onclick="switchTab('clients')">
+                        <i data-lucide="users"></i>
+                        <span>Client Directory</span>
+                    </button>
+                    <button class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+                        <i data-lucide="settings"></i>
+                        <span>My Business Setup</span>
+                    </button>
+                    <button class="nav-item nav-item-admin" id="nav-admin" onclick="switchTab('admin')" style="display:none;">
+                        <i data-lucide="shield-check"></i>
+                        <span>Admin Panel</span>
+                    </button>
+                </nav>
+
+                <div class="sidebar-footer">
+                    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                        <i data-lucide="sun" class="sun-icon"></i>
+                        <i data-lucide="moon" class="moon-icon"></i>
+                        <span id="theme-text">Light Mode</span>
+                    </button>
+                    <button class="logout-btn" onclick="handleLogout()">
+                        <i data-lucide="log-out"></i>
+                        <span>Log Out</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="app-content">
+                
+                <!-- Dashboard Section -->
+                <section id="section-dashboard" class="content-section">
+                    <div class="section-header">
+                        <div>
+                            <h1>Dashboard</h1>
+                            <p class="text-secondary">Overview of your business financials</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="switchTab('create')">
+                            <i data-lucide="plus"></i>
+                            <span>New Invoice</span>
+                        </button>
+                    </div>
+
+                    <!-- Metrics Grid -->
+                    <div class="metrics-grid">
+                        <div class="metric-card glass">
+                            <div class="metric-icon val-total"><i data-lucide="receipt"></i></div>
+                            <div class="metric-data">
+                                <h3>Total Invoiced</h3>
+                                <span class="metric-value" id="dash-total-invoiced">$0.00</span>
+                                <span class="metric-sub" id="dash-invoice-count">0 Invoices total</span>
+                            </div>
+                        </div>
+                        <div class="metric-card glass">
+                            <div class="metric-icon val-paid"><i data-lucide="check-circle-2"></i></div>
+                            <div class="metric-data">
+                                <h3>Paid Received</h3>
+                                <span class="metric-value" id="dash-total-paid">$0.00</span>
+                                <span class="metric-sub" id="dash-paid-count">0 Marked Paid</span>
+                            </div>
+                        </div>
+                        <div class="metric-card glass">
+                            <div class="metric-icon val-due"><i data-lucide="alert-circle"></i></div>
+                            <div class="metric-data">
+                                <h3>Outstanding Due</h3>
+                                <span class="metric-value" id="dash-total-due">$0.00</span>
+                                <span class="metric-sub" id="dash-due-count">0 Outstanding</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity Section -->
+                    <div class="dashboard-details grid-2">
+                        <!-- Left: Recent Invoices -->
+                        <div class="glass card-padding">
+                            <div class="card-header">
+                                <h3>Recent Invoices</h3>
+                                <button class="btn btn-sm btn-outline" onclick="switchTab('history')">View All</button>
+                            </div>
+                            <div class="table-container">
+                                <table class="app-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Invoice #</th>
+                                            <th>Client</th>
+                                            <th>Date</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dash-recent-invoices-body">
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">No invoices created yet. Get started by clicking "New Invoice"!</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Right: Quick Quick Actions & Client Summary -->
+                        <div class="glass card-padding flex-col gap-4">
+                            <h3>Quick Company Info</h3>
+                            <div id="dash-company-preview" class="company-preview-card">
+                                <!-- Filled by JS -->
+                            </div>
+                            
+                            <div class="quick-tips-card">
+                                <div class="tip-header">
+                                    <i data-lucide="help-circle"></i>
+                                    <h4>HorizonGET Tip</h4>
+                                </div>
+                                <p>Select your business country in the Settings. HorizonGET adjusts currency symbols, local taxes (like India GST or UAE VAT), and required identifiers (GSTIN, ABN, TRN) automatically!</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Create/Edit Invoice Section -->
+                <section id="section-create" class="content-section hidden">
+                    <div class="section-header no-print">
+                        <div>
+                            <h1 id="builder-title">New Invoice</h1>
+                            <p class="text-secondary">Draft and format professional local invoices</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-outline" onclick="resetInvoiceBuilder()">
+                                <i data-lucide="rotate-ccw"></i>
+                                <span>Reset Form</span>
+                            </button>
+                            <button class="btn btn-secondary" onclick="switchTab('history')">
+                                <span>View Saved</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="invoice-workspace">
+                        <!-- Form controls (Left) -->
+                        <div class="invoice-form-panel glass card-padding no-print">
+                            <h3 class="panel-subtitle"><i data-lucide="settings-2"></i> Invoice Setup</h3>
+                            
+                            <!-- Invoice Config -->
+                            <div class="form-section">
+                                <div class="grid-2">
+                                    <div class="input-group">
+                                        <label for="inv-country">Tax Jurisdiction (Country)</label>
+                                        <select id="inv-country" onchange="handleInvoiceCountryChange()">
+                                            <option value="US">United States (USD, Sales Tax)</option>
+                                            <option value="UK">United Kingdom (GBP, VAT)</option>
+                                            <option value="IN">India (INR, GST)</option>
+                                            <option value="AU">Australia (AUD, GST)</option>
+                                            <option value="AE">United Arab Emirates (AED, VAT)</option>
+                                            <option value="SA">Saudi Arabia (SAR, VAT)</option>
+                                            <option value="EU">European Union (EUR, VAT)</option>
+                                        </select>
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="inv-number">Invoice Number</label>
+                                        <input type="text" id="inv-number" value="INV-0001" oninput="updatePreview()">
+                                    </div>
+                                </div>
+                                <div class="grid-2">
+                                    <div class="input-group">
+                                        <label for="inv-date">Issue Date</label>
+                                        <input type="date" id="inv-date" onchange="updatePreview()">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="inv-due-date">Due Date</label>
+                                        <input type="date" id="inv-due-date" onchange="updatePreview()">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Client Info -->
+                            <div class="form-section">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="form-label-bold">Client Information</label>
+                                    <select id="inv-client-selector" class="select-sm" onchange="autofillClientDetails()">
+                                        <option value="">-- Quick Load Saved Client --</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="inv-client-name">Client Name / Business Name</label>
+                                    <input type="text" id="inv-client-name" placeholder="Client Co." oninput="updatePreview()">
+                                </div>
+                                <div class="grid-2">
+                                    <div class="input-group">
+                                        <label for="inv-client-email">Client Email</label>
+                                        <input type="email" id="inv-client-email" placeholder="billing@client.com" oninput="updatePreview()">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="inv-client-phone">Client Phone</label>
+                                        <input type="text" id="inv-client-phone" placeholder="+1 (555) 019-2834" oninput="updatePreview()">
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label for="inv-client-address">Billing Address</label>
+                                    <textarea id="inv-client-address" rows="2" placeholder="456 Client St, Suite 100&#10;City, State, Zip" oninput="updatePreview()"></textarea>
+                                </div>
+                                <div class="input-group hidden" id="client-tax-reg-container">
+                                    <label id="client-tax-reg-label" for="inv-client-tax-reg">Client Tax Reg (GSTIN/VAT/ABN)</label>
+                                    <input type="text" id="inv-client-tax-reg" placeholder="Optional" oninput="updatePreview()">
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Line Items -->
+                            <div class="form-section">
+                                <label class="form-label-bold mb-2 block">Invoice Items</label>
+                                <div id="items-list-container" class="items-editor">
+                                    <!-- Dynamic rows added here -->
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline mt-2" onclick="addInvoiceItemRow()">
+                                    <i data-lucide="plus"></i>
+                                    <span>Add Item Row</span>
+                                </button>
+                            </div>
+
+                            <hr>
+
+                            <!-- Extra options (Discount, Notes, Payment Method) -->
+                            <div class="form-section">
+                                <label class="form-label-bold mb-2 block">Billing Details & Payment QR</label>
+                                <div class="grid-2">
+                                    <div class="input-group">
+                                        <label for="inv-discount">Discount Amount (Fixed)</label>
+                                        <input type="number" id="inv-discount" min="0" step="any" value="0" oninput="updatePreview()">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="inv-tax-rate">Global Tax Rate (%)</label>
+                                        <input type="number" id="inv-tax-rate" min="0" max="100" value="18" oninput="updatePreview()">
+                                    </div>
+                                </div>
+
+                                <div class="input-group">
+                                    <label for="inv-payment-type">QR Payment Link Type</label>
+                                    <select id="inv-payment-type" onchange="toggleQRDetails()">
+                                        <option value="bank">Bank Details (IBAN / Account Number)</option>
+                                        <option value="upi">UPI ID (India specific)</option>
+                                        <option value="paypal">PayPal Link</option>
+                                        <option value="custom">Custom Text / Website URL</option>
+                                    </select>
+                                </div>
+
+                                <!-- Dynamic QR inputs based on type -->
+                                <div id="qr-bank-details" class="qr-details-field">
+                                    <div class="grid-2">
+                                        <div class="input-group">
+                                            <label for="inv-bank-name">Bank Name</label>
+                                            <input type="text" id="inv-bank-name" placeholder="Horizon Global Bank" oninput="updatePreview()">
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="inv-bank-acc">Account / IBAN</label>
+                                            <input type="text" id="inv-bank-acc" placeholder="US12 3456 7890..." oninput="updatePreview()">
+                                        </div>
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="inv-bank-routing">SWIFT / Routing Code</label>
+                                        <input type="text" id="inv-bank-routing" placeholder="HGBAUS33XXX" oninput="updatePreview()">
+                                    </div>
+                                </div>
+
+                                <div id="qr-upi-details" class="qr-details-field hidden">
+                                    <div class="input-group">
+                                        <label for="inv-upi-id">UPI ID / VPA</label>
+                                        <input type="text" id="inv-upi-id" placeholder="merchant@okbank" oninput="updatePreview()">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="inv-upi-name">Merchant / Payee Name</label>
+                                        <input type="text" id="inv-upi-name" placeholder="HorizonGET Payee" oninput="updatePreview()">
+                                    </div>
+                                </div>
+
+                                <div id="qr-paypal-details" class="qr-details-field hidden">
+                                    <div class="input-group">
+                                        <label for="inv-paypal-url">PayPal Username / Email</label>
+                                        <input type="text" id="inv-paypal-url" placeholder="horizonget" oninput="updatePreview()">
+                                    </div>
+                                </div>
+
+                                <div id="qr-custom-details" class="qr-details-field hidden">
+                                    <div class="input-group">
+                                        <label for="inv-custom-url">QR Code Link / Text</label>
+                                        <input type="url" id="inv-custom-url" placeholder="https://horizonget.com/pay" oninput="updatePreview()">
+                                    </div>
+                                </div>
+
+                                <div class="input-group">
+                                    <label for="inv-notes">Payment Terms / Memo</label>
+                                    <textarea id="inv-notes" rows="2" placeholder="Payment due within 15 days. Thank you for your business!" oninput="updatePreview()"></textarea>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Creator Actions -->
+                            <div class="flex-col gap-2">
+                                <button type="button" class="btn btn-primary btn-block" onclick="saveActiveInvoice()">
+                                    <i data-lucide="save"></i>
+                                    <span id="save-btn-text">Save Invoice</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Invoice Preview (Right) -->
+                        <div class="invoice-preview-container">
+                            <div class="preview-actions no-print">
+                                <span><i data-lucide="eye"></i> A4 Dynamic Preview</span>
+                                <div class="flex gap-2">
+                                    <button class="btn btn-sm btn-secondary" onclick="exportInvoicePDF()" title="Export as PDF">
+                                        <i data-lucide="file-pdf"></i>
+                                        <span>PDF</span>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline" onclick="window.print()">
+                                        <i data-lucide="printer"></i>
+                                        <span>Print</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- The actual printable layout -->
+                            <div id="invoice-paper" class="invoice-paper-sheet">
+                                <div class="invoice-watermark">HorizonGET Draft</div>
+                                
+                                <!-- Sheet Header -->
+                                <div class="sheet-header">
+                                    <div class="company-brand">
+                                        <div class="invoice-logo-wrapper" id="preview-logo-container">
+                                            <!-- Dynamically injected company initials or upload logo -->
+                                            <span class="preview-initials" id="preview-logo-initials">H</span>
+                                        </div>
+                                        <div class="company-details-block">
+                                            <h2 id="prev-sender-name" class="sheet-title">Horizon Labs Inc</h2>
+                                            <p id="prev-sender-address">123 Horizon Way, Tech District, CA 94016</p>
+                                            <p id="prev-sender-contact">Email: contact@horizon.com | Phone: +1 555-0100</p>
+                                            <p class="tax-registration-id" id="prev-sender-tax-id">EIN: 12-3456789</p>
+                                        </div>
+                                    </div>
+                                    <div class="invoice-identity-block">
+                                        <div class="invoice-badge">INVOICE</div>
+                                        <div class="meta-row">
+                                            <span class="meta-label">Invoice No:</span>
+                                            <span class="meta-value" id="prev-inv-number">INV-0001</span>
+                                        </div>
+                                        <div class="meta-row">
+                                            <span class="meta-label">Date Issued:</span>
+                                            <span class="meta-value" id="prev-inv-date">May 23, 2026</span>
+                                        </div>
+                                        <div class="meta-row">
+                                            <span class="meta-label">Due Date:</span>
+                                            <span class="meta-value" id="prev-inv-due-date">Jun 07, 2026</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="divider-line"></div>
+
+                                <!-- Client details -->
+                                <div class="sheet-addresses">
+                                    <div class="address-col">
+                                        <h4 class="sheet-subtitle">Billed To</h4>
+                                        <div class="recipient-name" id="prev-client-name">Acme Corp</div>
+                                        <p id="prev-client-address">456 Roadway Ave, Office 2B, SF, CA 94000</p>
+                                        <p id="prev-client-phone">Phone: +1 555-9000</p>
+                                        <p id="prev-client-email">Email: billing@acme.com</p>
+                                        <p id="prev-client-tax-id" class="tax-registration-id"></p>
+                                    </div>
+                                    <div class="address-col tax-jurisdiction-box">
+                                        <h4 class="sheet-subtitle">Tax Jurisdiction</h4>
+                                        <p id="prev-country-label">United States</p>
+                                        <p class="badge-tag" id="prev-tax-system-badge">Sales Tax Region</p>
+                                    </div>
+                                </div>
+
+                                <!-- Items Table -->
+                                <table class="preview-items-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Description</th>
+                                            <th class="text-right">Qty</th>
+                                            <th class="text-right">Unit Price</th>
+                                            <th class="text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="prev-items-body">
+                                        <!-- Dynamic items list -->
+                                    </tbody>
+                                </table>
+
+                                <!-- Totals Block & Payments -->
+                                <div class="sheet-footer-layout">
+                                    <!-- Payment instructions and QR code -->
+                                    <div class="payment-instructions-card">
+                                        <h4 class="sheet-subtitle">Payment Instructions</h4>
+                                        <div id="prev-payment-memo" class="payment-notes-text">
+                                            Please make checks payable to Horizon Labs. Bank transfer details on the right QR code.
+                                        </div>
+                                        
+                                        <!-- QR code payment container -->
+                                        <div class="payment-qr-block">
+                                            <div class="qr-wrapper">
+                                                <div id="qrcode-canvas"></div>
+                                            </div>
+                                            <div class="qr-text">
+                                                <strong>Scan to Pay Securely</strong>
+                                                <span id="prev-qr-payment-desc">Provides direct banking/payment portal details.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Math summary -->
+                                    <div class="summary-totals-card">
+                                        <div class="sum-row">
+                                            <span>Subtotal</span>
+                                            <span id="prev-subtotal">$0.00</span>
+                                        </div>
+                                        <div class="sum-row text-muted" id="prev-discount-row">
+                                            <span>Discount</span>
+                                            <span id="prev-discount">-$0.00</span>
+                                        </div>
+                                        <div class="sum-row">
+                                            <span id="prev-tax-label">Tax (18%)</span>
+                                            <span id="prev-tax">$0.00</span>
+                                        </div>
+                                        <div class="divider-line mini"></div>
+                                        <div class="sum-row grand-total-row">
+                                            <span>Total Due</span>
+                                            <span id="prev-grand-total">$0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="sheet-bottom-note">
+                                    Generated securely using <strong>HorizonGET</strong> invoicing software.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Saved Invoices / History Section -->
+                <section id="section-history" class="content-section hidden">
+                    <div class="section-header">
+                        <div>
+                            <h1>Invoices & Sharing Portal</h1>
+                            <p class="text-secondary">Track statuses, download PDFs, or share via Email & WhatsApp</p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="switchTab('create')">
+                                <i data-lucide="plus"></i>
+                                <span>Create New</span>
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportAllInvoicesJSON()" title="Export all invoices">
+                                <i data-lucide="download"></i>
+                                <span>Export JSON</span>
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportInvoicesCSV()" title="Export for accounting">
+                                <i data-lucide="file-spreadsheet"></i>
+                                <span>Export CSV</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- List container -->
+                    <div class="glass card-padding">
+                        <div class="table-container">
+                            <table class="app-table">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice #</th>
+                                        <th>Client Name</th>
+                                        <th>Country</th>
+                                        <th>Issue Date</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th class="text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table-body">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-5">No invoices found. Write your first one today!</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Client Directory Section -->
+                <section id="section-clients" class="content-section hidden">
+                    <div class="section-header">
+                        <div>
+                            <h1>Client Directory</h1>
+                            <p class="text-secondary">Manage saved clients for automatic invoice autofill</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openAddClientModal()">
+                            <i data-lucide="user-plus"></i>
+                            <span>Add New Client</span>
+                        </button>
+                    </div>
+
+                    <div class="grid-layout-sidebar">
+                        <!-- Clients List -->
+                        <div class="glass card-padding">
+                            <h3>Client Database</h3>
+                            <div class="clients-list-scroller" id="clients-list-container">
+                                <!-- JS Populated -->
+                            </div>
+                        </div>
+
+                        <!-- Add/Edit Client Form -->
+                        <div class="glass card-padding" id="client-form-panel">
+                            <h3 id="client-panel-title">Add Client</h3>
+                            <form id="client-editor-form" onsubmit="handleSaveClient(event)">
+                                <input type="hidden" id="edit-client-id">
+                                <div class="input-group">
+                                    <label for="client-name">Client / Company Name</label>
+                                    <input type="text" id="client-name" required placeholder="Acme Corp">
+                                </div>
+                                <div class="input-group">
+                                    <label for="client-email">Email Address</label>
+                                    <input type="email" id="client-email" required placeholder="billing@acme.org">
+                                </div>
+                                <div class="input-group">
+                                    <label for="client-phone">Phone Number</label>
+                                    <input type="text" id="client-phone" placeholder="+1 (555) 987-6543">
+                                </div>
+                                <div class="input-group">
+                                    <label for="client-address">Billing Address</label>
+                                    <textarea id="client-address" rows="3" placeholder="123 Client St&#10;City, Region, Postcode"></textarea>
+                                </div>
+                                <div class="input-group">
+                                    <label for="client-tax-reg">Local Tax Registration # (GSTIN/VAT/ABN)</label>
+                                    <input type="text" id="client-tax-reg" placeholder="e.g. 29AAAAA1111A1Z1">
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    <i data-lucide="save"></i>
+                                    <span>Save Client</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Business Settings Section -->
+                <section id="section-settings" class="content-section hidden">
+                    <div class="section-header">
+                        <div>
+                            <h1>My Business Setup</h1>
+                            <p class="text-secondary">Configure default details for your company profile</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-workspace grid-2">
+                        <!-- Left: Core Profile Form -->
+                        <form id="settings-profile-form" class="glass card-padding" onsubmit="handleSaveSettings(event)">
+                            <h3>Company Details</h3>
+                            <p class="text-secondary mb-4">These details pre-fill the "Billed From" section on your invoices.</p>
+                            
+                            <div class="input-group">
+                                <label for="set-company-logo">Company Logo (Initials or Upload)</label>
+                                <div class="logo-uploader-field">
+                                    <div class="logo-preview-square" id="settings-logo-preview">
+                                        <span>H</span>
+                                    </div>
+                                    <div class="upload-controls">
+                                        <input type="file" id="set-company-logo" accept="image/*" class="file-input" onchange="handleLogoUpload(event)">
+                                        <label for="set-company-logo" class="btn btn-sm btn-outline">Upload Logo Image</label>
+                                        <button type="button" class="btn btn-sm btn-text-danger" onclick="clearLogoUpload()">Remove Logo</button>
+                                        <span class="help-text">JPG/PNG/SVG supported. Max size 500KB.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="set-company-name">Your Company / Legal Business Name</label>
+                                <input type="text" id="set-company-name" required placeholder="Horizon Labs Inc.">
+                            </div>
+                            <div class="grid-2">
+                                <div class="input-group">
+                                    <label for="set-company-email">Billing Email</label>
+                                    <input type="email" id="set-company-email" required placeholder="billing@horizonlabs.com">
+                                </div>
+                                <div class="input-group">
+                                    <label for="set-company-phone">Contact Phone</label>
+                                    <input type="text" id="set-company-phone" placeholder="+1 (555) 012-3456">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="set-company-address">Physical Address</label>
+                                <textarea id="set-company-address" rows="3" placeholder="123 Horizon Way, Suite A&#10;San Francisco, CA 94103"></textarea>
+                            </div>
+                            
+                            <div class="grid-2">
+                                <div class="input-group">
+                                    <label for="set-default-country">Default Country</label>
+                                    <select id="set-default-country" onchange="handleSettingsCountryChange()">
+                                        <option value="US">United States (USD, Sales Tax)</option>
+                                        <option value="UK">United Kingdom (GBP, VAT)</option>
+                                        <option value="IN">India (INR, GST)</option>
+                                        <option value="AU">Australia (AUD, GST)</option>
+                                        <option value="AE">United Arab Emirates (AED, VAT)</option>
+                                        <option value="SA">Saudi Arabia (SAR, VAT)</option>
+                                        <option value="EU">European Union (EUR, VAT)</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label id="set-tax-reg-label" for="set-company-tax-id">Company Tax Registration #</label>
+                                    <input type="text" id="set-company-tax-id" placeholder="e.g. EIN, GSTIN, VAT ID">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i data-lucide="check-circle"></i>
+                                <span>Save Company Profile</span>
+                            </button>
+                        </form>
+
+                        <!-- Right: Banking & Payment Defaults -->
+                        <div class="glass card-padding flex-col justify-between">
+                            <div>
+                                <h3>Payment Instructions Defaults</h3>
+                                <p class="text-secondary mb-4">Set up default details that will construct your secure payment QR codes.</p>
+                                
+                                <div class="input-group">
+                                    <label for="set-default-payment-type">Payment Mode</label>
+                                    <select id="set-default-payment-type" onchange="toggleSettingsQRFields()">
+                                        <option value="bank">Traditional Banking Transfer</option>
+                                        <option value="upi">UPI App Transfer (India)</option>
+                                        <option value="paypal">PayPal Gateway Link</option>
+                                        <option value="custom">Custom Web Link / Gateway</option>
+                                    </select>
+                                </div>
+
+                                <!-- Sub forms -->
+                                <div id="set-qr-bank" class="set-qr-block">
+                                    <div class="input-group">
+                                        <label for="set-bank-name">Default Bank Name</label>
+                                        <input type="text" id="set-bank-name" placeholder="Chase Business Banking">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="set-bank-acc">Account / IBAN</label>
+                                        <input type="text" id="set-bank-acc" placeholder="US12 9999 9999...">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="set-bank-routing">SWIFT / Routing Code</label>
+                                        <input type="text" id="set-bank-routing" placeholder="CHASUS33">
+                                    </div>
+                                </div>
+
+                                <div id="set-qr-upi" class="set-qr-block hidden">
+                                    <div class="input-group">
+                                        <label for="set-upi-id">Payee UPI ID</label>
+                                        <input type="text" id="set-upi-id" placeholder="horizonget@upi">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="set-upi-name">Payee Business Name</label>
+                                        <input type="text" id="set-upi-name" placeholder="HorizonGET Merchant">
+                                    </div>
+                                </div>
+
+                                <div id="set-qr-paypal" class="set-qr-block hidden">
+                                    <div class="input-group">
+                                        <label for="set-paypal-id">PayPal Username</label>
+                                        <input type="text" id="set-paypal-id" placeholder="horizonget">
+                                    </div>
+                                </div>
+
+                                <div id="set-qr-custom" class="set-qr-block hidden">
+                                    <div class="input-group">
+                                        <label for="set-custom-url">Custom Web Link / UPI string</label>
+                                        <input type="url" id="set-custom-url" placeholder="https://mygateway.com/pay">
+                                    </div>
+                                </div>
+
+                                <div class="input-group mt-2">
+                                    <label for="set-default-notes">Default Payment Terms & Memo</label>
+                                    <textarea id="set-default-notes" rows="3" placeholder="Thank you for your business! Payment is requested within 15 days via bank transfer or by scanning the payment QR code."></textarea>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-outline btn-block mt-4" onclick="savePaymentDefaults()">
+                                <i data-lucide="shield-check"></i>
+                                <span>Save Payment Instructions</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Local Data Management -->
+                    <div class="glass card-padding mt-6" style="margin-top: 2rem;">
+                        <div class="section-title-with-icon" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <i data-lucide="database" class="text-primary" style="color: var(--color-primary);"></i>
+                            <h3 style="margin: 0; font-family: 'Outfit', sans-serif;">Local Data Management</h3>
+                        </div>
+                        <p class="text-secondary mb-4" style="margin-bottom: 1.5rem;">All your profile settings, saved clients, and invoice histories are stored 100% locally in your web browser. You can export a JSON backup file to save on your physical disk, import a backup to restore your data, or wipe the browser storage clean.</p>
+                        
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                            <button type="button" class="btn btn-outline" onclick="exportLocalDataBackup()">
+                                <i data-lucide="download"></i>
+                                <span>Export Data Backup (.json)</span>
+                            </button>
+                            
+                            <div>
+                                <input type="file" id="import-backup-file" accept=".json" style="display: none;" onchange="importLocalDataBackup(event)">
+                                <label for="import-backup-file" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; margin-bottom: 0;">
+                                    <i data-lucide="upload"></i>
+                                    <span>Import Data Backup (.json)</span>
+                                </label>
+                            </div>
+
+                            <button type="button" class="btn btn-text-danger" onclick="wipeAllLocalData()" style="margin-left: auto;">
+                                <i data-lucide="trash-2"></i>
+                                <span>Wipe Browser Storage</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                <!-- Admin Panel Section -->
+                <section id="section-admin" class="content-section hidden">
+                    <div class="section-header">
+                        <div>
+                            <h1>Admin Panel</h1>
+                            <p class="text-secondary">Manage tenants and configure platform pricing</p>
+                        </div>
+                        <div class="admin-badge">
+                            <i data-lucide="shield-check"></i>
+                            <span>Full Access</span>
+                        </div>
+                    </div>
+
+                    <!-- Tenant Management -->
+                    <div class="glass card-padding" style="margin-bottom:1.5rem;">
+                        <div class="card-header" style="margin-bottom:1rem;">
+                            <div>
+                                <h3>Tenant Management</h3>
+                                <p class="text-secondary" style="font-size:0.85rem;margin-top:2px;">All registered user accounts on this platform</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline" onclick="loadTenantsTable()">
+                                <i data-lucide="refresh-cw"></i>
+                                <span>Refresh</span>
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table class="app-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Company</th>
+                                        <th>Email</th>
+                                        <th>Country</th>
+                                        <th>Invoices</th>
+                                        <th class="text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-tenants-body">
+                                    <tr><td colspan="6" class="text-center text-muted py-4">Loading tenants...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Pricing Management -->
+                    <div class="glass card-padding">
+                        <div class="card-header" style="margin-bottom:1rem;">
+                            <div>
+                                <h3>Default Tax Rate Configuration</h3>
+                                <p class="text-secondary" style="font-size:0.85rem;margin-top:2px;">Override the platform default tax rate (%) applied per country when creating new invoices</p>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveAdminPricing()">
+                                <i data-lucide="save"></i>
+                                <span>Save Pricing</span>
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table class="app-table">
+                                <thead>
+                                    <tr>
+                                        <th>Country</th>
+                                        <th>Currency</th>
+                                        <th>Tax System</th>
+                                        <th>Default Rate (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-pricing-body">
+                                    <tr><td colspan="4" class="text-center text-muted py-4">Loading pricing...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+
+        <!-- Global Share Modal -->
+        <div id="share-modal" class="modal-overlay hidden" onclick="closeShareModal(event)">
+            <div class="modal-content glass" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3>Share Invoice</h3>
+                    <button class="btn-close" onclick="closeShareModal()"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary mb-4">Choose a digital channel to share invoice <strong id="share-inv-number">INV-XXXX</strong> with your client.</p>
+                    
+                    <div class="share-options-grid">
+                        <button class="share-option-card mail" onclick="triggerEmailShare()">
+                            <i data-lucide="mail"></i>
+                            <h4>Email Channel</h4>
+                            <p>Pre-compose an email containing the invoice summary and details.</p>
+                        </button>
+                        
+                        <button class="share-option-card whatsapp" onclick="triggerWhatsAppShare()">
+                            <i data-lucide="message-square"></i>
+                            <h4>WhatsApp Channel</h4>
+                            <p>Send a quick-format direct message with billing link details.</p>
+                        </button>
+                    </div>
+                    
+                    <div class="clipboard-box mt-4">
+                        <label>Copy Invoice Summary Text</label>
+                        <div class="clipboard-input-row">
+                            <textarea id="share-summary-text" readonly rows="4"></textarea>
+                            <button class="btn btn-secondary" onclick="copyShareText()">
+                                <i data-lucide="copy" id="copy-icon"></i>
+                                <span id="copy-btn-label">Copy</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="toast-notification hidden">
+            <i data-lucide="info" id="toast-icon"></i>
+            <span id="toast-message">Notification details...</span>
+        </div>
+
+    </div><!-- /#app -->
+
+    <!-- Application Script Files -->
+    <script src="auth.js"></script>
+    <script src="share.js"></script>
+    <script src="invoice.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
