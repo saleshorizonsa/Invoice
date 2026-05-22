@@ -2,14 +2,16 @@
   "name": "horizon-invoice-gen",
   "version": "1.0.0",
   "description": "HorizonGET — Professional Country-Specific Invoice Generator",
-  "homepage": ".",
+  "main": "server.js",
   "scripts": {
-    "build": "echo Static site — no build step required",
-    "start": "npx serve . -l 8080"
+    "start": "node server.js",
+    "build": "echo Build complete"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
   },
   "engines": {
     "node": ">=14"
   },
-  "keywords": ["invoice", "generator", "GST", "VAT", "tax"],
   "license": "MIT"
 }
