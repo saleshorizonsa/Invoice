@@ -389,7 +389,20 @@ app.get('/api/public/pricing', async (req, res) => {
 app.use(express.static(path.join(__dirname)));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
+/* ── Global error handler ───────────────────────────────────────────────────── */
+app.use((err, req, res, _next) => {
+    console.error('Unhandled error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+});
+
+/* ── Health check ───────────────────────────────────────────────────────────── */
+app.get('/health', (req, res) => res.json({ status: 'ok', ts: Date.now() }));
+
 /* ── Boot ───────────────────────────────────────────────────────────────────── */
-initDB()
-    .then(() => app.listen(PORT, () => console.log(`HorizonGET on port ${PORT}`)))
-    .catch(err => { console.error('DB init failed:', err); process.exit(1); });
+const server = app.listen(PORT, '0.0.0.0', () =>
+    console.log(`HorizonGET listening on port ${PORT}`)
+);
+
+initDB().catch(err => {
+    console.error('⚠️  DB init error (server still running):', err.message);
+});
