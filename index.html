@@ -163,7 +163,8 @@
                         <span class="price-period" id="pro-period">/month</span>
                     </div>
                     <p class="plan-tagline" id="pro-tagline">Billed monthly · cancel anytime</p>
-                    <button class="plan-cta plan-cta-pro" onclick="openAuthModal('register','pro')">Start Free Trial</button>
+                    <button class="plan-cta plan-cta-pro" onclick="openAuthModal('register','pro')">Get Pro Plan</button>
+                    <p class="plan-pay-note"><i data-lucide="landmark"></i> Register free · pay by bank transfer · we activate within 24h</p>
                     <ul class="plan-features">
                         <li class="feat-yes"><i data-lucide="check"></i>Everything in Free</li>
                         <li class="feat-yes"><i data-lucide="check"></i>Unlimited PDF exports</li>
@@ -174,7 +175,6 @@
                         <li class="feat-yes"><i data-lucide="check"></i>Recurring invoices</li>
                         <li class="feat-yes"><i data-lucide="check"></i>Priority email support</li>
                     </ul>
-                    <p class="plan-trial-note">14-day free trial · No credit card required</p>
                 </div>
 
                 <!-- Business -->
@@ -187,6 +187,7 @@
                     </div>
                     <p class="plan-tagline" id="biz-tagline">Billed monthly · cancel anytime</p>
                     <button class="plan-cta plan-cta-biz" onclick="openAuthModal('register','business')">Get Business Plan</button>
+                    <p class="plan-pay-note"><i data-lucide="landmark"></i> Register free · pay by bank transfer · we activate within 24h</p>
                     <ul class="plan-features">
                         <li class="feat-yes"><i data-lucide="check"></i>Everything in Pro</li>
                         <li class="feat-yes"><i data-lucide="check"></i>Team access (up to 5 users)</li>
@@ -197,7 +198,6 @@
                         <li class="feat-yes"><i data-lucide="check"></i>Dedicated account manager</li>
                         <li class="feat-yes"><i data-lucide="check"></i>24/7 priority support</li>
                     </ul>
-                    <p class="plan-trial-note">14-day free trial · No credit card required</p>
                 </div>
 
             </div>
@@ -407,6 +407,22 @@
                 
                 <!-- Dashboard Section -->
                 <section id="section-dashboard" class="content-section">
+
+                    <!-- Upgrade Banner — shown only for free plan users -->
+                    <div id="upgrade-banner" class="upgrade-banner hidden">
+                        <div class="upgrade-banner-content">
+                            <i data-lucide="zap"></i>
+                            <div class="upgrade-banner-text">
+                                <strong>You're on the Free plan.</strong>
+                                Upgrade to Pro for unlimited PDF exports, custom branding &amp; more — from $4.99/month.
+                            </div>
+                            <button class="btn btn-sm btn-upgrade" onclick="showPaymentModal('pro')">Upgrade to Pro</button>
+                            <button class="btn btn-sm btn-ghost upgrade-dismiss" onclick="document.getElementById('upgrade-banner').classList.add('hidden')" title="Dismiss">
+                                <i data-lucide="x"></i>
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="section-header">
                         <div>
                             <h1>Dashboard</h1>
@@ -1216,6 +1232,45 @@
         </div>
 
     </div><!-- /#app -->
+
+    <!-- Payment Instructions Modal (shown after paid plan registration) -->
+    <div id="payment-modal" class="modal-overlay hidden" onclick="closePaymentModal(event)">
+        <div class="modal-content glass payment-modal-card" onclick="event.stopPropagation()">
+            <button class="auth-modal-close" onclick="closePaymentModal()"><i data-lucide="x"></i></button>
+            <div class="payment-modal-header">
+                <div class="payment-modal-icon"><i data-lucide="landmark"></i></div>
+                <h2>Activate Your <span id="payment-plan-label">Pro</span> Plan</h2>
+                <p>Your account is ready. Complete your bank transfer and we'll activate your plan within <strong>24 hours</strong>.</p>
+            </div>
+            <div class="payment-bank-block">
+                <div class="bank-detail-row">
+                    <span>Bank Name</span>
+                    <strong>Al Rajhi Bank</strong>
+                </div>
+                <div class="bank-detail-row">
+                    <span>Account Name</span>
+                    <strong>Horizon Technology</strong>
+                </div>
+                <div class="bank-detail-row">
+                    <span>IBAN</span>
+                    <strong>SA00 0000 0000 0000 0000 0000</strong>
+                </div>
+                <div class="bank-detail-row">
+                    <span>Amount</span>
+                    <strong id="payment-amount-label">$4.99 / month</strong>
+                </div>
+            </div>
+            <div class="payment-modal-steps">
+                <div class="pay-step"><span>1</span>Transfer the amount above to our bank account</div>
+                <div class="pay-step"><span>2</span>Email your receipt to <a href="mailto:sales@horizon-sa.net">sales@horizon-sa.net</a></div>
+                <div class="pay-step"><span>3</span>We verify &amp; activate your plan within 24 hours</div>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="closePaymentModal()">
+                <i data-lucide="check-circle"></i> Understood — I'll complete the transfer
+            </button>
+            <p class="payment-modal-footer">Questions? WhatsApp or email <a href="mailto:sales@horizon-sa.net">sales@horizon-sa.net</a></p>
+        </div>
+    </div>
 
     <!-- Application Script Files -->
     <script src="api.js"></script>

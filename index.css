@@ -1876,3 +1876,145 @@ hr {
         margin: 20mm;
     }
 }
+
+/* ==========================================================================
+   PLAN PAYMENT NOTE (pricing cards)
+   ========================================================================== */
+.plan-pay-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    margin: 6px 0 12px;
+    opacity: 0.85;
+}
+.plan-pay-note i { width: 13px; height: 13px; flex-shrink: 0; }
+
+/* ==========================================================================
+   PAYMENT INSTRUCTIONS MODAL
+   ========================================================================== */
+.payment-modal-card {
+    max-width: 500px;
+    padding: 2rem;
+    position: relative;
+}
+
+.payment-modal-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.payment-modal-icon {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+    color: #fff;
+}
+.payment-modal-icon i { width: 24px; height: 24px; }
+.payment-modal-header h2 { font-size: 1.3rem; margin-bottom: 0.4rem; }
+.payment-modal-header p  { font-size: 0.85rem; color: var(--text-secondary); }
+.payment-modal-header span { color: var(--accent); }
+
+.payment-bank-block {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+}
+.bank-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.45rem 0;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.bank-detail-row:last-child { border-bottom: none; }
+.bank-detail-row span { color: var(--text-secondary); }
+.bank-detail-row strong { color: var(--text-primary); font-weight: 600; }
+
+.payment-modal-steps {
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+.pay-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+.pay-step span {
+    background: var(--primary);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.pay-step a { color: var(--accent); }
+
+.payment-modal-footer {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-top: 0.75rem;
+}
+.payment-modal-footer a { color: var(--accent); }
+
+/* ==========================================================================
+   IN-APP UPGRADE BANNER
+   ========================================================================== */
+.upgrade-banner {
+    background: linear-gradient(135deg, rgba(30,58,110,0.18) 0%, rgba(201,129,32,0.12) 100%);
+    border: 1px solid rgba(201,129,32,0.35);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.25rem;
+}
+.upgrade-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.upgrade-banner-content > i {
+    color: var(--accent);
+    width: 20px; height: 20px;
+    flex-shrink: 0;
+}
+.upgrade-banner-text {
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    min-width: 200px;
+}
+.upgrade-banner-text strong { color: var(--text-primary); }
+.btn-upgrade {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.btn-upgrade:hover { opacity: 0.9; }
+.upgrade-dismiss {
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+}
+.upgrade-dismiss:hover { color: var(--text-primary); }

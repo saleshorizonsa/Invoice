@@ -115,6 +115,9 @@ async function handleRegister(event) {
         await loadPricingCache();
         await initAppData();
         switchTab('dashboard');
+        if (plan === 'pro' || plan === 'business') {
+            setTimeout(() => showPaymentModal(plan), 600);
+        }
     } catch (err) {
         showToast(err.message || 'Registration failed.', 'x-circle');
     }
@@ -151,6 +154,23 @@ async function saveActiveUser(updates) {
         showToast(err.message || 'Error saving profile.', 'x-circle');
         return false;
     }
+}
+
+function showPaymentModal(plan) {
+    const modal     = document.getElementById('payment-modal');
+    const planLabel = document.getElementById('payment-plan-label');
+    const amtLabel  = document.getElementById('payment-amount-label');
+    if (!modal) return;
+    planLabel.textContent = plan === 'business' ? 'Business' : 'Pro';
+    amtLabel.textContent  = plan === 'business' ? '$14.99 / month' : '$4.99 / month';
+    modal.classList.remove('hidden');
+    lucide.createIcons();
+}
+
+function closePaymentModal(event) {
+    if (event && event.target !== document.getElementById('payment-modal')) return;
+    const modal = document.getElementById('payment-modal');
+    if (modal) modal.classList.add('hidden');
 }
 
 function loadUserProfile() {

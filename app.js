@@ -173,6 +173,15 @@ function initDashboard() {
         });
     }
 
+    const upgradeBanner = document.getElementById("upgrade-banner");
+    if (upgradeBanner) {
+        if (!user.plan || user.plan === 'free') {
+            upgradeBanner.classList.remove("hidden");
+        } else {
+            upgradeBanner.classList.add("hidden");
+        }
+    }
+
     const compPreview = document.getElementById("dash-company-preview");
     if (compPreview) {
         compPreview.innerHTML = `
