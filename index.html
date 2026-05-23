@@ -1271,13 +1271,13 @@
             </div>
         </div>
 
-        <!-- Notification Toast -->
-        <div id="toast" class="toast-notification hidden">
-            <i data-lucide="info" id="toast-icon"></i>
-            <span id="toast-message">Notification details...</span>
-        </div>
-
     </div><!-- /#app -->
+
+    <!-- Notification Toast (outside #app so it shows on landing/auth screens too) -->
+    <div id="toast" class="toast-notification hidden">
+        <i data-lucide="info" id="toast-icon"></i>
+        <span id="toast-message">Notification details...</span>
+    </div>
 
     <!-- Password Reset Modal (shown when ?reset_token= is in URL) -->
     <div id="reset-modal" class="modal-overlay hidden" style="z-index:1100">
