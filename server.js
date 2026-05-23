@@ -278,6 +278,7 @@ app.post('/api/auth/login', async (req, res) => {
         const token = jwt.sign({ id: u.id, email: u.email, isAdmin: !!u.is_admin }, JWT_SECRET, { expiresIn: '30d' });
         res.json({ token, user: userRow(u) });
     } catch (err) {
+        console.error('Login error:', err.message);
         res.status(500).json({ error: 'Login failed' });
     }
 });
@@ -518,7 +519,19 @@ app.use((err, req, res, _next) => {
 });
 
 /* ── Health check ───────────────────────────────────────────────────────────── */
-app.get('/health', (req, res) => res.json({ status: 'ok', ts: Date.now() }));
+app.get('/health', async (req, res) => {
+    let db = 'ok';
+    try { await pool.query('SELECT 1'); } catch (e) { db = e.message; }
+    res.json({ status: 'ok', ts: Date.now(), db, env: {
+        DB_HOST: process.env.DB_HOST || '(not set)',
+        DB_NAME: process.env.DB_NAME || '(not set)',
+        DB_USER: process.env.DB_USER ? '(set)' : '(not set)',
+        DB_PASSWORD: process.env.DB_PASSWORD ? '(set)' : '(not set)',
+        SMTP_HOST: process.env.SMTP_HOST || '(not set)',
+        SMTP_USER: process.env.SMTP_USER || '(not set)',
+        SMTP_PASS: process.env.SMTP_PASS ? '(set)' : '(not set)',
+    }});
+});
 
 /* ── Boot ───────────────────────────────────────────────────────────────────── */
 const server = app.listen(PORT, '0.0.0.0', () =>

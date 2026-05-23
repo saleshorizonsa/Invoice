@@ -330,7 +330,7 @@ function getInvoiceActionButtons(invoice) {
     return `
         <div class="action-buttons-group">
             <button class="btn btn-sm btn-outline" title="Download PDF" onclick="exportInvoicePDF('${invoice.id}')">
-                <i data-lucide="file-pdf"></i>
+                <i data-lucide="file-down"></i>
             </button>
             <button class="btn btn-sm btn-outline" title="Download JSON" onclick="exportInvoiceJSON('${invoice.id}')">
                 <i data-lucide="download"></i>
