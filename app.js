@@ -319,15 +319,16 @@ function loadClientToForm(id) {
 }
 
 async function deleteClient(id) {
-    if (!confirm("Remove this client from the directory?")) return;
-    try {
-        await apiCall(`/api/clients/${id}`, { method: 'DELETE' });
-        showToast("Client deleted.", "trash");
-        await refreshClients();
-        loadClientDirectory();
-    } catch (err) {
-        showToast(err.message || "Error deleting client.", "x-circle");
-    }
+    showConfirm('Remove Client', 'Remove this client from the directory? This cannot be undone.', async () => {
+        try {
+            await apiCall(`/api/clients/${id}`, { method: 'DELETE' });
+            showToast("Client deleted.", "trash");
+            await refreshClients();
+            loadClientDirectory();
+        } catch (err) {
+            showToast(err.message || "Error deleting client.", "x-circle");
+        }
+    });
 }
 
 function autofillClientDetails() {
@@ -442,6 +443,36 @@ async function clearLogoUpload() {
     if (success) { showToast("Logo removed.", "check"); loadSettings(); updatePreview(); }
 }
 
+/* ─ Confirm Dialog ───────────────────────────────────────────────────────── */
+let _confirmCallback = null;
+
+function showConfirm(title, message, onConfirm, { okLabel = 'Confirm', danger = true } = {}) {
+    document.getElementById('confirm-title').textContent   = title;
+    document.getElementById('confirm-message').textContent = message;
+    const okBtn = document.getElementById('confirm-ok-btn');
+    okBtn.textContent = okLabel;
+    okBtn.className   = danger ? 'btn btn-danger' : 'btn btn-primary';
+    const icon = document.getElementById('confirm-modal').querySelector('.confirm-modal-icon');
+    if (danger) { icon.classList.remove('icon-info'); } else { icon.classList.add('icon-info'); }
+    _confirmCallback = onConfirm;
+    document.getElementById('confirm-modal').classList.remove('hidden');
+    lucide.createIcons();
+}
+
+function confirmOk() {
+    closeConfirmModal();
+    if (_confirmCallback) _confirmCallback();
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirm-modal').classList.add('hidden');
+    _confirmCallback = null;
+}
+
+function handleConfirmOverlayClick(e) {
+    if (e.target === document.getElementById('confirm-modal')) closeConfirmModal();
+}
+
 /* ─ Toast Notifications ──────────────────────────────────────────────────── */
 let toastTimeout = null;
 function showToast(message, iconName = "info") {
@@ -496,14 +527,15 @@ async function loadTenantsTable() {
 }
 
 async function deleteTenant(id) {
-    if (!confirm("Remove tenant account? This cannot be undone.")) return;
-    try {
-        await apiCall(`/api/admin/tenants/${id}`, { method: 'DELETE' });
-        showToast("Tenant removed.", "check-circle");
-        await loadTenantsTable();
-    } catch (err) {
-        showToast(err.message || "Error removing tenant.", "x-circle");
-    }
+    showConfirm('Remove Tenant', 'Delete this tenant account permanently? All their invoices will be lost.', async () => {
+        try {
+            await apiCall(`/api/admin/tenants/${id}`, { method: 'DELETE' });
+            showToast("Tenant removed.", "check-circle");
+            await loadTenantsTable();
+        } catch (err) {
+            showToast(err.message || "Error removing tenant.", "x-circle");
+        }
+    });
 }
 
 async function loadAdminPricingTable() {

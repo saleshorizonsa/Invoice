@@ -212,11 +212,13 @@ async function handleRegister(event) {
 }
 
 function handleLogout() {
-    clearSession();
-    showToast('Signed out successfully.', 'log-out');
-    document.getElementById('login-email').value    = '';
-    document.getElementById('login-password').value = '';
-    checkAuth();
+    showConfirm('Sign Out', 'Are you sure you want to sign out of your account?', () => {
+        clearSession();
+        showToast('Signed out successfully.', 'log-out');
+        document.getElementById('login-email').value    = '';
+        document.getElementById('login-password').value = '';
+        checkAuth();
+    }, { okLabel: 'Sign Out', danger: false });
 }
 
 async function saveActiveUser(updates) {

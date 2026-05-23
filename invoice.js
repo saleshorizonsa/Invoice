@@ -404,16 +404,17 @@ async function toggleInvoicePaidStatus(id) {
 }
 
 async function deleteInvoice(id) {
-    if (!confirm("Are you sure you want to delete this invoice?")) return;
-    try {
-        await apiCall(`/api/invoices/${id}`, { method: 'DELETE' });
-        showToast("Invoice deleted.", "trash");
-        await refreshInvoices();
-        initDashboard();
-        initHistoryTable();
-    } catch (err) {
-        showToast(err.message || "Error deleting invoice.", "x-circle");
-    }
+    showConfirm('Delete Invoice', 'This invoice will be permanently deleted and cannot be recovered.', async () => {
+        try {
+            await apiCall(`/api/invoices/${id}`, { method: 'DELETE' });
+            showToast("Invoice deleted.", "trash");
+            await refreshInvoices();
+            initDashboard();
+            initHistoryTable();
+        } catch (err) {
+            showToast(err.message || "Error deleting invoice.", "x-circle");
+        }
+    });
 }
 
 function formatDateString(str) {

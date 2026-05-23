@@ -317,8 +317,13 @@ function importLocalDataBackup() {
  * Sign out (data is safe in the cloud)
  */
 function wipeAllLocalData() {
-    if (!confirm("This will sign you out. Your data remains securely stored in the cloud.")) return;
-    handleLogout();
+    showConfirm('Sign Out', 'This will sign you out. Your data remains securely stored in the cloud.', () => {
+        clearSession();
+        showToast('Signed out successfully.', 'log-out');
+        document.getElementById('login-email').value    = '';
+        document.getElementById('login-password').value = '';
+        checkAuth();
+    }, { okLabel: 'Sign Out', danger: false });
 }
 
 // =================== ACTION BUTTONS FOR HISTORY TABLE ===================
