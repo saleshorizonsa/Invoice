@@ -491,12 +491,26 @@ function showToast(message, iconName = "info") {
 /* ─ Admin Panel ──────────────────────────────────────────────────────────── */
 async function initAdminPanel() {
     const user = getActiveUser();
-    if (!user || !user.isAdmin) {
-        showToast("Access denied.", "shield-off");
-        switchTab('dashboard');
-        return;
-    }
-    await Promise.all([loadTenantsTable(), loadAdminPricingTable()]);
+    if (!user || !user.isAdmin) { showToast("Access denied.", "shield-off"); switchTab('dashboard'); return; }
+    await Promise.all([loadAdminAnalytics(), loadTenantsTable(), loadAdminPricingTable(), loadPlanPricingForm(), loadPaymentsTable(), loadPromosTable()]);
+}
+
+function switchAdminTab(tab) {
+    document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.admin-tab-panel').forEach(p => p.classList.add('hidden'));
+    document.getElementById('atab-' + tab).classList.add('active');
+    document.getElementById('admin-tab-' + tab).classList.remove('hidden');
+}
+
+async function loadAdminAnalytics() {
+    try {
+        const d = await apiCall('/api/admin/analytics');
+        document.getElementById('stat-total-users').textContent     = d.total_users;
+        document.getElementById('stat-paid-users').textContent      = d.paid_users;
+        document.getElementById('stat-total-invoices').textContent  = d.total_invoices;
+        document.getElementById('stat-confirmed-revenue').textContent = '$' + parseFloat(d.confirmed_rev).toFixed(2);
+        document.getElementById('stat-pending-payments').textContent = d.pending_count;
+    } catch {}
 }
 
 async function loadTenantsTable() {
@@ -505,25 +519,53 @@ async function loadTenantsTable() {
     try {
         const tenants = await apiCall('/api/admin/tenants');
         if (!tenants || tenants.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No tenants registered yet.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No tenants registered yet.</td></tr>';
             return;
         }
+        const planBadge = p => ({
+            free:     '<span class="plan-badge plan-free">Free</span>',
+            pro:      '<span class="plan-badge plan-pro">Pro</span>',
+            business: '<span class="plan-badge plan-biz">Business</span>'
+        })[p] || p;
         tbody.innerHTML = tenants.map(u => `<tr>
             <td><strong>${u.name}</strong></td>
             <td>${u.company_name || '—'}</td>
             <td>${u.email}</td>
             <td>${getCountryMeta(u.country).name}</td>
+            <td>${planBadge(u.plan)}
+                <select class="select-sm plan-changer" onchange="changeTenantPlan(${u.id}, this)" style="margin-left:6px;">
+                    <option value="">Change…</option>
+                    <option value="free">→ Free</option>
+                    <option value="pro">→ Pro</option>
+                    <option value="business">→ Business</option>
+                </select>
+            </td>
             <td>${u.invoice_count}</td>
+            <td style="font-size:0.78rem;color:var(--text-secondary);">${new Date(u.created_at).toLocaleDateString()}</td>
             <td class="text-right">
                 <button class="btn btn-sm btn-text-danger" onclick="deleteTenant(${u.id})">
-                    <i data-lucide="user-x"></i><span>Remove</span>
+                    <i data-lucide="user-x"></i>
                 </button>
             </td>
         </tr>`).join('');
         lucide.createIcons();
     } catch {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Error loading tenants.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">Error loading tenants.</td></tr>`;
     }
+}
+
+async function changeTenantPlan(id, selectEl) {
+    const plan = selectEl.value;
+    if (!plan) return;
+    showConfirm('Change Plan', `Upgrade/downgrade this user to the ${plan} plan?`, async () => {
+        try {
+            await apiCall(`/api/admin/tenants/${id}/plan`, { method: 'PUT', body: { plan } });
+            showToast(`Plan changed to ${plan}.`, 'check-circle');
+            await loadTenantsTable();
+            loadAdminAnalytics();
+        } catch (err) { showToast(err.message || 'Error changing plan.', 'x-circle'); }
+    }, { okLabel: 'Change Plan', danger: false });
+    selectEl.value = '';
 }
 
 async function deleteTenant(id) {
@@ -532,9 +574,8 @@ async function deleteTenant(id) {
             await apiCall(`/api/admin/tenants/${id}`, { method: 'DELETE' });
             showToast("Tenant removed.", "check-circle");
             await loadTenantsTable();
-        } catch (err) {
-            showToast(err.message || "Error removing tenant.", "x-circle");
-        }
+            loadAdminAnalytics();
+        } catch (err) { showToast(err.message || "Error removing tenant.", "x-circle"); }
     });
 }
 
@@ -543,7 +584,6 @@ async function loadAdminPricingTable() {
     if (!tbody) return;
     let overrides = {};
     try { overrides = await apiCall('/api/admin/pricing') || {}; } catch {}
-
     tbody.innerHTML = Object.entries(COUNTRY_REGISTRY).map(([code, meta]) => {
         const rate = overrides[code] !== undefined ? overrides[code] : meta.defaultTaxRate;
         return `<tr>
@@ -554,14 +594,166 @@ async function loadAdminPricingTable() {
 }
 
 async function saveAdminPricing() {
-    const inputs    = document.querySelectorAll(".admin-rate-input");
+    const inputs = document.querySelectorAll(".admin-rate-input");
     const overrides = {};
-    inputs.forEach(input => { overrides[input.dataset.country] = parseFloat(input.value) || 0; });
+    inputs.forEach(i => { overrides[i.dataset.country] = parseFloat(i.value) || 0; });
     try {
         await apiCall('/api/admin/pricing', { method: 'PUT', body: overrides });
         await loadPricingCache();
-        showToast("Pricing configuration saved.", "check-circle");
-    } catch (err) {
-        showToast(err.message || "Error saving pricing.", "x-circle");
-    }
+        showToast("Tax rates saved.", "check-circle");
+    } catch (err) { showToast(err.message || "Error saving.", "x-circle"); }
+}
+
+/* ── Plan Pricing ── */
+async function loadPlanPricingForm() {
+    try {
+        const prices = await apiCall('/api/admin/plan-pricing');
+        if (prices.pro)      { document.getElementById('pro-monthly-price').value = prices.pro.monthly; document.getElementById('pro-annual-price').value = prices.pro.annual; }
+        if (prices.business) { document.getElementById('biz-monthly-price').value = prices.business.monthly; document.getElementById('biz-annual-price').value = prices.business.annual; }
+    } catch {}
+}
+
+async function savePlanPricing() {
+    const body = {
+        pro:      { monthly: parseFloat(document.getElementById('pro-monthly-price').value), annual: parseFloat(document.getElementById('pro-annual-price').value) },
+        business: { monthly: parseFloat(document.getElementById('biz-monthly-price').value), annual: parseFloat(document.getElementById('biz-annual-price').value) }
+    };
+    try {
+        await apiCall('/api/admin/plan-pricing', { method: 'PUT', body });
+        showToast('Plan pricing updated.', 'check-circle');
+    } catch (err) { showToast(err.message || 'Error saving pricing.', 'x-circle'); }
+}
+
+/* ── Payments ── */
+async function loadPaymentsTable() {
+    const tbody = document.getElementById('admin-payments-body');
+    if (!tbody) return;
+    try {
+        const payments = await apiCall('/api/admin/payments');
+        if (!payments || payments.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No payments logged yet.</td></tr>'; return;
+        }
+        const statusBadge = s => ({
+            confirmed: '<span class="plan-badge plan-pro">Confirmed</span>',
+            pending:   '<span class="plan-badge" style="background:rgba(201,129,32,0.15);color:#C98120;">Pending</span>',
+            rejected:  '<span class="plan-badge plan-free">Rejected</span>'
+        })[s] || s;
+        tbody.innerHTML = payments.map(p => `<tr>
+            <td><strong>${p.user_name}</strong><br><small style="color:var(--text-secondary)">${p.user_email}</small></td>
+            <td><span style="text-transform:capitalize">${p.plan}</span></td>
+            <td>$${parseFloat(p.amount).toFixed(2)}</td>
+            <td>${statusBadge(p.status)}</td>
+            <td style="font-size:0.78rem;color:var(--text-secondary)">${new Date(p.created_at).toLocaleDateString()}</td>
+            <td class="text-right" style="display:flex;gap:4px;justify-content:flex-end;">
+                ${p.status === 'pending' ? `<button class="btn btn-sm btn-primary" onclick="confirmPayment(${p.id})" title="Confirm"><i data-lucide="check"></i></button>` : ''}
+                <button class="btn btn-sm btn-text-danger" onclick="deletePayment(${p.id})" title="Delete"><i data-lucide="trash-2"></i></button>
+            </td>
+        </tr>`).join('');
+        lucide.createIcons();
+    } catch { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Error loading payments.</td></tr>'; }
+}
+
+async function handleLogPayment(event) {
+    event.preventDefault();
+    const body = {
+        email:      document.getElementById('pay-user-email').value.trim().toLowerCase(),
+        plan:       document.getElementById('pay-plan').value,
+        amount:     parseFloat(document.getElementById('pay-amount').value),
+        paymentRef: document.getElementById('pay-ref').value.trim(),
+        notes:      document.getElementById('pay-notes').value.trim(),
+        status:     document.getElementById('pay-status').value
+    };
+    try {
+        await apiCall('/api/admin/payments', { method: 'POST', body });
+        showToast('Payment logged' + (body.status === 'confirmed' ? ' & plan activated.' : '.'), 'check-circle');
+        document.getElementById('log-payment-form').reset();
+        await loadPaymentsTable();
+        loadAdminAnalytics();
+        loadTenantsTable();
+    } catch (err) { showToast(err.message || 'Error logging payment.', 'x-circle'); }
+}
+
+async function confirmPayment(id) {
+    showConfirm('Confirm Payment', 'Mark this payment as confirmed and activate the user\'s plan?', async () => {
+        try {
+            await apiCall(`/api/admin/payments/${id}`, { method: 'PUT', body: { status: 'confirmed' } });
+            showToast('Payment confirmed & plan activated.', 'check-circle');
+            await loadPaymentsTable();
+            loadAdminAnalytics();
+            loadTenantsTable();
+        } catch (err) { showToast(err.message || 'Error.', 'x-circle'); }
+    }, { okLabel: 'Confirm', danger: false });
+}
+
+async function deletePayment(id) {
+    showConfirm('Delete Record', 'Remove this payment record?', async () => {
+        try {
+            await apiCall(`/api/admin/payments/${id}`, { method: 'DELETE' });
+            showToast('Payment record removed.', 'trash');
+            await loadPaymentsTable();
+            loadAdminAnalytics();
+        } catch (err) { showToast(err.message || 'Error.', 'x-circle'); }
+    });
+}
+
+/* ── Promo Codes ── */
+async function loadPromosTable() {
+    const tbody = document.getElementById('admin-promos-body');
+    if (!tbody) return;
+    try {
+        const promos = await apiCall('/api/admin/promos');
+        if (!promos || promos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No promo codes yet.</td></tr>'; return;
+        }
+        tbody.innerHTML = promos.map(p => `<tr>
+            <td><strong>${p.code}</strong>${p.description ? `<br><small style="color:var(--text-secondary)">${p.description}</small>` : ''}</td>
+            <td>${p.discount_type === 'percent' ? p.discount_value + '%' : '$' + parseFloat(p.discount_value).toFixed(2)} off${p.applicable_plan ? ' (' + p.applicable_plan + ')' : ''}</td>
+            <td>${p.uses_count}${p.max_uses ? ' / ' + p.max_uses : ''}</td>
+            <td style="font-size:0.78rem">${p.expires_at ? new Date(p.expires_at).toLocaleDateString() : '—'}</td>
+            <td><label class="toggle-switch-sm" title="${p.is_active ? 'Active' : 'Inactive'}">
+                <input type="checkbox" ${p.is_active ? 'checked' : ''} onchange="togglePromo(${p.id}, this.checked)">
+                <span class="toggle-slider-sm"></span>
+            </label></td>
+            <td class="text-right">
+                <button class="btn btn-sm btn-text-danger" onclick="deletePromo(${p.id})"><i data-lucide="trash-2"></i></button>
+            </td>
+        </tr>`).join('');
+        lucide.createIcons();
+    } catch { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Error loading promos.</td></tr>'; }
+}
+
+async function handleCreatePromo(event) {
+    event.preventDefault();
+    const code = document.getElementById('promo-code').value.trim().toUpperCase();
+    const body = {
+        code, description: document.getElementById('promo-desc').value.trim(),
+        discountType:    document.getElementById('promo-type').value,
+        discountValue:   parseFloat(document.getElementById('promo-value').value),
+        applicablePlan:  document.getElementById('promo-plan').value || null,
+        maxUses:         document.getElementById('promo-max-uses').value ? parseInt(document.getElementById('promo-max-uses').value) : null,
+        expiresAt:       document.getElementById('promo-expires').value || null
+    };
+    try {
+        await apiCall('/api/admin/promos', { method: 'POST', body });
+        showToast('Promo code created.', 'gift');
+        document.getElementById('create-promo-form').reset();
+        await loadPromosTable();
+    } catch (err) { showToast(err.message || 'Error creating promo.', 'x-circle'); }
+}
+
+async function togglePromo(id, isActive) {
+    try {
+        await apiCall(`/api/admin/promos/${id}`, { method: 'PUT', body: { isActive } });
+        showToast(isActive ? 'Promo activated.' : 'Promo deactivated.', 'check-circle');
+    } catch (err) { showToast(err.message || 'Error.', 'x-circle'); loadPromosTable(); }
+}
+
+async function deletePromo(id) {
+    showConfirm('Delete Promo', 'Delete this promo code permanently?', async () => {
+        try {
+            await apiCall(`/api/admin/promos/${id}`, { method: 'DELETE' });
+            showToast('Promo deleted.', 'trash');
+            await loadPromosTable();
+        } catch (err) { showToast(err.message || 'Error.', 'x-circle'); }
+    });
 }

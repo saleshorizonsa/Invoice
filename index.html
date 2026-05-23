@@ -1161,7 +1161,7 @@
                     <div class="section-header">
                         <div>
                             <h1>Admin Panel</h1>
-                            <p class="text-secondary">Manage tenants and configure platform pricing</p>
+                            <p class="text-secondary">Manage tenants, payments, pricing and promotions</p>
                         </div>
                         <div class="admin-badge">
                             <i data-lucide="shield-check"></i>
@@ -1169,65 +1169,256 @@
                         </div>
                     </div>
 
-                    <!-- Tenant Management -->
-                    <div class="glass card-padding" style="margin-bottom:1.5rem;">
-                        <div class="card-header" style="margin-bottom:1rem;">
-                            <div>
-                                <h3>Tenant Management</h3>
-                                <p class="text-secondary" style="font-size:0.85rem;margin-top:2px;">All registered user accounts on this platform</p>
-                            </div>
-                            <button class="btn btn-sm btn-outline" onclick="loadTenantsTable()">
-                                <i data-lucide="refresh-cw"></i>
-                                <span>Refresh</span>
-                            </button>
+                    <!-- Analytics Strip -->
+                    <div class="admin-analytics-strip" id="admin-analytics-strip">
+                        <div class="admin-stat-card">
+                            <i data-lucide="users"></i>
+                            <div><span class="admin-stat-val" id="stat-total-users">—</span><span class="admin-stat-lbl">Total Users</span></div>
                         </div>
-                        <div class="table-container">
-                            <table class="app-table">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Company</th>
-                                        <th>Email</th>
-                                        <th>Country</th>
-                                        <th>Invoices</th>
-                                        <th class="text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-tenants-body">
-                                    <tr><td colspan="6" class="text-center text-muted py-4">Loading tenants...</td></tr>
-                                </tbody>
-                            </table>
+                        <div class="admin-stat-card">
+                            <i data-lucide="crown"></i>
+                            <div><span class="admin-stat-val" id="stat-paid-users">—</span><span class="admin-stat-lbl">Paid Plans</span></div>
+                        </div>
+                        <div class="admin-stat-card">
+                            <i data-lucide="file-text"></i>
+                            <div><span class="admin-stat-val" id="stat-total-invoices">—</span><span class="admin-stat-lbl">Total Invoices</span></div>
+                        </div>
+                        <div class="admin-stat-card">
+                            <i data-lucide="dollar-sign"></i>
+                            <div><span class="admin-stat-val" id="stat-confirmed-revenue">—</span><span class="admin-stat-lbl">Confirmed Revenue</span></div>
+                        </div>
+                        <div class="admin-stat-card">
+                            <i data-lucide="clock"></i>
+                            <div><span class="admin-stat-val" id="stat-pending-payments">—</span><span class="admin-stat-lbl">Pending Payments</span></div>
                         </div>
                     </div>
 
-                    <!-- Pricing Management -->
-                    <div class="glass card-padding">
-                        <div class="card-header" style="margin-bottom:1rem;">
-                            <div>
-                                <h3>Default Tax Rate Configuration</h3>
-                                <p class="text-secondary" style="font-size:0.85rem;margin-top:2px;">Override the platform default tax rate (%) applied per country when creating new invoices</p>
+                    <!-- Admin Tabs -->
+                    <div class="admin-tabs">
+                        <button class="admin-tab-btn active" onclick="switchAdminTab('tenants')" id="atab-tenants"><i data-lucide="users"></i> Tenants</button>
+                        <button class="admin-tab-btn" onclick="switchAdminTab('payments')" id="atab-payments"><i data-lucide="credit-card"></i> Payments</button>
+                        <button class="admin-tab-btn" onclick="switchAdminTab('plan-pricing')" id="atab-plan-pricing"><i data-lucide="tag"></i> Plan Pricing</button>
+                        <button class="admin-tab-btn" onclick="switchAdminTab('tax-rates')" id="atab-tax-rates"><i data-lucide="percent"></i> Tax Rates</button>
+                        <button class="admin-tab-btn" onclick="switchAdminTab('promos')" id="atab-promos"><i data-lucide="gift"></i> Promos</button>
+                    </div>
+
+                    <!-- TAB: Tenants -->
+                    <div id="admin-tab-tenants" class="admin-tab-panel">
+                        <div class="glass card-padding">
+                            <div class="card-header" style="margin-bottom:1rem;">
+                                <div><h3>Tenant Management</h3><p class="text-secondary" style="font-size:0.85rem;">All registered accounts on this platform</p></div>
+                                <button class="btn btn-sm btn-outline" onclick="loadTenantsTable()"><i data-lucide="refresh-cw"></i><span>Refresh</span></button>
                             </div>
-                            <button class="btn btn-primary" onclick="saveAdminPricing()">
-                                <i data-lucide="save"></i>
-                                <span>Save Pricing</span>
-                            </button>
-                        </div>
-                        <div class="table-container">
-                            <table class="app-table">
-                                <thead>
-                                    <tr>
-                                        <th>Country</th>
-                                        <th>Currency</th>
-                                        <th>Tax System</th>
-                                        <th>Default Rate (%)</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-pricing-body">
-                                    <tr><td colspan="4" class="text-center text-muted py-4">Loading pricing...</td></tr>
-                                </tbody>
-                            </table>
+                            <div class="table-container">
+                                <table class="app-table">
+                                    <thead><tr>
+                                        <th>Name</th><th>Company</th><th>Email</th>
+                                        <th>Country</th><th>Plan</th><th>Invoices</th><th>Joined</th><th class="text-right">Actions</th>
+                                    </tr></thead>
+                                    <tbody id="admin-tenants-body">
+                                        <tr><td colspan="8" class="text-center text-muted py-4">Loading tenants...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- TAB: Payments -->
+                    <div id="admin-tab-payments" class="admin-tab-panel hidden">
+                        <div class="grid-2" style="gap:1.5rem;align-items:start;">
+                            <!-- Log Payment Form -->
+                            <div class="glass card-padding">
+                                <h3 style="margin-bottom:1rem;"><i data-lucide="plus-circle" style="vertical-align:middle;margin-right:6px;"></i>Log a Payment</h3>
+                                <form id="log-payment-form" onsubmit="handleLogPayment(event)">
+                                    <div class="input-group">
+                                        <label>User (Email)</label>
+                                        <div class="input-wrapper"><i data-lucide="mail"></i>
+                                            <input type="email" id="pay-user-email" required placeholder="user@example.com">
+                                        </div>
+                                    </div>
+                                    <div class="grid-2">
+                                        <div class="input-group">
+                                            <label>Plan</label>
+                                            <select id="pay-plan">
+                                                <option value="pro">Pro — $4.99/mo</option>
+                                                <option value="business">Business — $14.99/mo</option>
+                                            </select>
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Amount Received</label>
+                                            <div class="input-wrapper"><i data-lucide="dollar-sign"></i>
+                                                <input type="number" id="pay-amount" step="0.01" min="0" required placeholder="4.99">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Bank Reference / Transfer ID</label>
+                                        <div class="input-wrapper"><i data-lucide="hash"></i>
+                                            <input type="text" id="pay-ref" placeholder="e.g. TXN2026001">
+                                        </div>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Notes</label>
+                                        <textarea id="pay-notes" rows="2" placeholder="Optional notes..."></textarea>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Status</label>
+                                        <select id="pay-status">
+                                            <option value="confirmed">Confirmed — activate plan now</option>
+                                            <option value="pending">Pending — waiting for verification</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i data-lucide="check-circle"></i><span>Log Payment & Activate</span>
+                                    </button>
+                                </form>
+                            </div>
+                            <!-- Payments List -->
+                            <div class="glass card-padding">
+                                <div class="card-header" style="margin-bottom:1rem;">
+                                    <h3>Payment History</h3>
+                                    <button class="btn btn-sm btn-outline" onclick="loadPaymentsTable()"><i data-lucide="refresh-cw"></i></button>
+                                </div>
+                                <div class="table-container">
+                                    <table class="app-table">
+                                        <thead><tr><th>User</th><th>Plan</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr></thead>
+                                        <tbody id="admin-payments-body">
+                                            <tr><td colspan="6" class="text-center text-muted py-4">Loading...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: Plan Pricing -->
+                    <div id="admin-tab-plan-pricing" class="admin-tab-panel hidden">
+                        <div class="glass card-padding">
+                            <div class="card-header" style="margin-bottom:1.5rem;">
+                                <div><h3>Subscription Plan Pricing</h3><p class="text-secondary" style="font-size:0.85rem;">Set the prices shown on the landing page and payment modal</p></div>
+                                <button class="btn btn-primary" onclick="savePlanPricing()"><i data-lucide="save"></i><span>Save Prices</span></button>
+                            </div>
+                            <div class="plan-pricing-grid">
+                                <div class="plan-pricing-card">
+                                    <div class="plan-pricing-header free"><i data-lucide="zap"></i><span>Free</span></div>
+                                    <div class="input-group"><label>Monthly Price ($)</label>
+                                        <input type="number" class="plan-price-input" data-plan="free" data-period="monthly" value="0" min="0" step="0.01" readonly style="opacity:0.5;">
+                                    </div>
+                                    <p class="text-secondary" style="font-size:0.8rem;">Free plan price is always $0.</p>
+                                </div>
+                                <div class="plan-pricing-card">
+                                    <div class="plan-pricing-header pro"><i data-lucide="star"></i><span>Pro</span></div>
+                                    <div class="input-group"><label>Monthly Price ($)</label>
+                                        <input type="number" id="pro-monthly-price" min="0" step="0.01" value="4.99">
+                                    </div>
+                                    <div class="input-group"><label>Annual Price ($ / year)</label>
+                                        <input type="number" id="pro-annual-price" min="0" step="0.01" value="44.99">
+                                    </div>
+                                </div>
+                                <div class="plan-pricing-card">
+                                    <div class="plan-pricing-header biz"><i data-lucide="building-2"></i><span>Business</span></div>
+                                    <div class="input-group"><label>Monthly Price ($)</label>
+                                        <input type="number" id="biz-monthly-price" min="0" step="0.01" value="14.99">
+                                    </div>
+                                    <div class="input-group"><label>Annual Price ($ / year)</label>
+                                        <input type="number" id="biz-annual-price" min="0" step="0.01" value="134.99">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: Tax Rates -->
+                    <div id="admin-tab-tax-rates" class="admin-tab-panel hidden">
+                        <div class="glass card-padding">
+                            <div class="card-header" style="margin-bottom:1rem;">
+                                <div><h3>Country Tax Rate Configuration</h3><p class="text-secondary" style="font-size:0.85rem;">Default tax % applied when creating invoices per country</p></div>
+                                <button class="btn btn-primary" onclick="saveAdminPricing()"><i data-lucide="save"></i><span>Save Rates</span></button>
+                            </div>
+                            <div class="table-container">
+                                <table class="app-table">
+                                    <thead><tr><th>Country</th><th>Currency</th><th>Tax System</th><th>Default Rate (%)</th></tr></thead>
+                                    <tbody id="admin-pricing-body">
+                                        <tr><td colspan="4" class="text-center text-muted py-4">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: Promo Codes -->
+                    <div id="admin-tab-promos" class="admin-tab-panel hidden">
+                        <div class="grid-2" style="gap:1.5rem;align-items:start;">
+                            <!-- Create Promo -->
+                            <div class="glass card-padding">
+                                <h3 style="margin-bottom:1rem;"><i data-lucide="gift" style="vertical-align:middle;margin-right:6px;"></i>Create Promo Code</h3>
+                                <form id="create-promo-form" onsubmit="handleCreatePromo(event)">
+                                    <div class="input-group">
+                                        <label>Promo Code</label>
+                                        <div class="input-wrapper"><i data-lucide="tag"></i>
+                                            <input type="text" id="promo-code" required placeholder="e.g. LAUNCH50" style="text-transform:uppercase;">
+                                        </div>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Description</label>
+                                        <input type="text" id="promo-desc" placeholder="e.g. Launch special 50% off">
+                                    </div>
+                                    <div class="grid-2">
+                                        <div class="input-group">
+                                            <label>Discount Type</label>
+                                            <select id="promo-type">
+                                                <option value="percent">Percentage (%)</option>
+                                                <option value="fixed">Fixed Amount ($)</option>
+                                            </select>
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Discount Value</label>
+                                            <div class="input-wrapper"><i data-lucide="percent"></i>
+                                                <input type="number" id="promo-value" required min="0" step="0.01" placeholder="50">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="grid-2">
+                                        <div class="input-group">
+                                            <label>Applies To</label>
+                                            <select id="promo-plan">
+                                                <option value="">All Plans</option>
+                                                <option value="pro">Pro only</option>
+                                                <option value="business">Business only</option>
+                                            </select>
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Max Uses (blank = unlimited)</label>
+                                            <input type="number" id="promo-max-uses" min="1" placeholder="e.g. 100">
+                                        </div>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Expires On (blank = never)</label>
+                                        <input type="date" id="promo-expires">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i data-lucide="plus-circle"></i><span>Create Promo Code</span>
+                                    </button>
+                                </form>
+                            </div>
+                            <!-- Promos List -->
+                            <div class="glass card-padding">
+                                <div class="card-header" style="margin-bottom:1rem;">
+                                    <h3>Active Promo Codes</h3>
+                                    <button class="btn btn-sm btn-outline" onclick="loadPromosTable()"><i data-lucide="refresh-cw"></i></button>
+                                </div>
+                                <div class="table-container">
+                                    <table class="app-table">
+                                        <thead><tr><th>Code</th><th>Discount</th><th>Uses</th><th>Expires</th><th>Status</th><th></th></tr></thead>
+                                        <tbody id="admin-promos-body">
+                                            <tr><td colspan="6" class="text-center text-muted py-4">Loading...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </section>
 
             </main>

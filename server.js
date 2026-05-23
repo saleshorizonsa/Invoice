@@ -172,6 +172,52 @@ async function initDB() {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         `);
 
+        /* ── Plan pricing table ── */
+        await c.query(`
+            CREATE TABLE IF NOT EXISTS plan_pricing (
+                plan_key       VARCHAR(20)   PRIMARY KEY,
+                monthly_price  DECIMAL(10,2) NOT NULL DEFAULT 0,
+                annual_price   DECIMAL(10,2) NOT NULL DEFAULT 0
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+        const [[proRow]] = await c.query("SELECT plan_key FROM plan_pricing WHERE plan_key='pro'");
+        if (!proRow) {
+            await c.query("INSERT INTO plan_pricing VALUES ('free',0,0),('pro',4.99,44.99),('business',14.99,134.99)");
+        }
+
+        /* ── Subscription payments table ── */
+        await c.query(`
+            CREATE TABLE IF NOT EXISTS subscription_payments (
+                id           INT AUTO_INCREMENT PRIMARY KEY,
+                user_id      INT NOT NULL,
+                plan         VARCHAR(20) NOT NULL,
+                amount       DECIMAL(10,2) NOT NULL,
+                currency     VARCHAR(10) DEFAULT 'USD',
+                status       VARCHAR(20) DEFAULT 'pending',
+                payment_ref  VARCHAR(255),
+                notes        TEXT,
+                created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+
+        /* ── Promo codes table ── */
+        await c.query(`
+            CREATE TABLE IF NOT EXISTS promo_codes (
+                id             INT AUTO_INCREMENT PRIMARY KEY,
+                code           VARCHAR(50) UNIQUE NOT NULL,
+                description    VARCHAR(255),
+                discount_type  VARCHAR(20) DEFAULT 'percent',
+                discount_value DECIMAL(10,2) NOT NULL,
+                applicable_plan VARCHAR(20) DEFAULT NULL,
+                max_uses       INT DEFAULT NULL,
+                uses_count     INT DEFAULT 0,
+                expires_at     DATETIME DEFAULT NULL,
+                is_active      BOOLEAN DEFAULT TRUE,
+                created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+
         /* ── Seed admin ── */
         const [[admin]] = await c.query('SELECT id FROM users WHERE email = ?', ['sales@horizon-sa.net']);
         if (!admin) {
@@ -498,6 +544,119 @@ app.put('/api/admin/pricing', requireAdmin, async (req, res) => {
     } finally {
         c.release();
     }
+});
+
+/* ── Admin: update user plan ────────────────────────────────────────────────── */
+app.put('/api/admin/tenants/:id/plan', requireAdmin, async (req, res) => {
+    const { plan } = req.body;
+    if (!['free','pro','business'].includes(plan)) return res.status(400).json({ error: 'Invalid plan' });
+    await pool.query('UPDATE users SET plan=? WHERE id=? AND is_admin=FALSE', [plan, req.params.id]);
+    res.json({ success: true });
+});
+
+/* ── Admin: analytics ───────────────────────────────────────────────────────── */
+app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
+    const [[{ total_users }]]    = await pool.query("SELECT COUNT(*) AS total_users FROM users WHERE is_admin=FALSE");
+    const [[{ paid_users }]]     = await pool.query("SELECT COUNT(*) AS paid_users FROM users WHERE is_admin=FALSE AND plan IN ('pro','business')");
+    const [[{ total_invoices }]] = await pool.query("SELECT COUNT(*) AS total_invoices FROM invoices");
+    const [[{ confirmed_rev }]]  = await pool.query("SELECT IFNULL(SUM(amount),0) AS confirmed_rev FROM subscription_payments WHERE status='confirmed'");
+    const [[{ pending_count }]]  = await pool.query("SELECT COUNT(*) AS pending_count FROM subscription_payments WHERE status='pending'");
+    res.json({ total_users, paid_users, total_invoices, confirmed_rev, pending_count });
+});
+
+/* ── Admin: plan pricing ────────────────────────────────────────────────────── */
+app.get('/api/admin/plan-pricing', requireAdmin, async (req, res) => {
+    const [rows] = await pool.query('SELECT * FROM plan_pricing');
+    const out = {};
+    rows.forEach(r => { out[r.plan_key] = { monthly: parseFloat(r.monthly_price), annual: parseFloat(r.annual_price) }; });
+    res.json(out);
+});
+
+app.put('/api/admin/plan-pricing', requireAdmin, async (req, res) => {
+    const { pro, business } = req.body;
+    await pool.query('UPDATE plan_pricing SET monthly_price=?, annual_price=? WHERE plan_key=?', [pro.monthly, pro.annual, 'pro']);
+    await pool.query('UPDATE plan_pricing SET monthly_price=?, annual_price=? WHERE plan_key=?', [business.monthly, business.annual, 'business']);
+    res.json({ success: true });
+});
+
+/* ── Public: plan pricing (for landing page) ────────────────────────────────── */
+app.get('/api/public/plan-pricing', async (req, res) => {
+    const [rows] = await pool.query('SELECT * FROM plan_pricing');
+    const out = {};
+    rows.forEach(r => { out[r.plan_key] = { monthly: parseFloat(r.monthly_price), annual: parseFloat(r.annual_price) }; });
+    res.json(out);
+});
+
+/* ── Admin: payments ────────────────────────────────────────────────────────── */
+app.get('/api/admin/payments', requireAdmin, async (req, res) => {
+    const [rows] = await pool.query(`
+        SELECT sp.*, u.name AS user_name, u.email AS user_email
+        FROM subscription_payments sp
+        JOIN users u ON u.id = sp.user_id
+        ORDER BY sp.created_at DESC
+    `);
+    res.json(rows);
+});
+
+app.post('/api/admin/payments', requireAdmin, async (req, res) => {
+    const { email, plan, amount, paymentRef, notes, status } = req.body;
+    const [[u]] = await pool.query('SELECT id FROM users WHERE email=?', [email.toLowerCase()]);
+    if (!u) return res.status(404).json({ error: 'User not found with that email' });
+    await pool.query(
+        'INSERT INTO subscription_payments (user_id,plan,amount,payment_ref,notes,status) VALUES (?,?,?,?,?,?)',
+        [u.id, plan, amount, paymentRef||'', notes||'', status||'pending']
+    );
+    if (status === 'confirmed') {
+        await pool.query('UPDATE users SET plan=? WHERE id=?', [plan, u.id]);
+    }
+    res.json({ success: true });
+});
+
+app.put('/api/admin/payments/:id', requireAdmin, async (req, res) => {
+    const { status } = req.body;
+    const [[pay]] = await pool.query('SELECT * FROM subscription_payments WHERE id=?', [req.params.id]);
+    if (!pay) return res.status(404).json({ error: 'Payment not found' });
+    await pool.query('UPDATE subscription_payments SET status=? WHERE id=?', [status, req.params.id]);
+    if (status === 'confirmed') {
+        await pool.query('UPDATE users SET plan=? WHERE id=?', [pay.plan, pay.user_id]);
+    }
+    res.json({ success: true });
+});
+
+app.delete('/api/admin/payments/:id', requireAdmin, async (req, res) => {
+    await pool.query('DELETE FROM subscription_payments WHERE id=?', [req.params.id]);
+    res.json({ success: true });
+});
+
+/* ── Admin: promo codes ─────────────────────────────────────────────────────── */
+app.get('/api/admin/promos', requireAdmin, async (req, res) => {
+    const [rows] = await pool.query('SELECT * FROM promo_codes ORDER BY created_at DESC');
+    res.json(rows);
+});
+
+app.post('/api/admin/promos', requireAdmin, async (req, res) => {
+    const { code, description, discountType, discountValue, applicablePlan, maxUses, expiresAt } = req.body;
+    try {
+        await pool.query(
+            'INSERT INTO promo_codes (code,description,discount_type,discount_value,applicable_plan,max_uses,expires_at) VALUES (?,?,?,?,?,?,?)',
+            [code.toUpperCase(), description||'', discountType, discountValue, applicablePlan||null, maxUses||null, expiresAt||null]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Promo code already exists' });
+        throw err;
+    }
+});
+
+app.put('/api/admin/promos/:id', requireAdmin, async (req, res) => {
+    const { isActive } = req.body;
+    await pool.query('UPDATE promo_codes SET is_active=? WHERE id=?', [isActive, req.params.id]);
+    res.json({ success: true });
+});
+
+app.delete('/api/admin/promos/:id', requireAdmin, async (req, res) => {
+    await pool.query('DELETE FROM promo_codes WHERE id=?', [req.params.id]);
+    res.json({ success: true });
 });
 
 /* ── Public pricing (no auth — tenants see admin-set tax rates) ─────────────── */
