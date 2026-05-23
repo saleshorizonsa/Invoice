@@ -1,13 +1,55 @@
 require('dotenv').config();
-const express  = require('express');
-const mysql    = require('mysql2/promise');
-const bcrypt   = require('bcryptjs');
-const jwt      = require('jsonwebtoken');
-const path     = require('path');
+const express    = require('express');
+const mysql      = require('mysql2/promise');
+const bcrypt     = require('bcryptjs');
+const jwt        = require('jsonwebtoken');
+const path       = require('path');
+const nodemailer = require('nodemailer');
+const crypto     = require('crypto');
 
-const app  = express();
-const PORT = process.env.PORT || 3000;
+const app        = express();
+const PORT       = process.env.PORT       || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'horizon-change-this-secret';
+const APP_URL    = process.env.APP_URL    || 'https://invoice.horizon-sa.net';
+
+/* ── Email transporter ──────────────────────────────────────────────────────── */
+const mailer = nodemailer.createTransport({
+    host:   process.env.SMTP_HOST || 'smtp.hostinger.com',
+    port:   parseInt(process.env.SMTP_PORT || '465'),
+    secure: parseInt(process.env.SMTP_PORT || '465') === 465,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+});
+
+async function sendEmail(to, subject, html) {
+    if (!process.env.SMTP_PASS) { console.log(`[EMAIL SKIP] To:${to} | ${subject}`); return; }
+    await mailer.sendMail({ from: `"HorizonGET" <${process.env.SMTP_USER}>`, to, subject, html });
+}
+
+function verifyEmailHtml(name, token) {
+    const url = `${APP_URL}/api/auth/verify-email?token=${token}`;
+    return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:28px;background:#f9fafb;border-radius:12px">
+        <h2 style="color:#1E3A6E;margin-bottom:6px">Verify your email</h2>
+        <p style="color:#555">Hi <strong>${name}</strong>, thanks for joining HorizonGET!<br>Click the button below to verify your email and activate your account.</p>
+        <a href="${url}" style="display:inline-block;margin:20px 0;padding:14px 32px;background:#C98120;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">Verify Email Address</a>
+        <p style="color:#888;font-size:13px">Link expires in 24 hours. If you didn't create an account, ignore this email.</p>
+        <p style="color:#bbb;font-size:11px;word-break:break-all">Or copy: ${url}</p>
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0">
+        <p style="color:#aaa;font-size:11px">HorizonGET · <a href="mailto:sales@horizon-sa.net" style="color:#C98120">sales@horizon-sa.net</a></p>
+    </div>`;
+}
+
+function resetEmailHtml(token) {
+    const url = `${APP_URL}?reset_token=${token}`;
+    return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:28px;background:#f9fafb;border-radius:12px">
+        <h2 style="color:#1E3A6E;margin-bottom:6px">Reset your password</h2>
+        <p style="color:#555">We received a request to reset your HorizonGET password.<br>Click below to set a new password.</p>
+        <a href="${url}" style="display:inline-block;margin:20px 0;padding:14px 32px;background:#C98120;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">Reset Password</a>
+        <p style="color:#888;font-size:13px">This link expires in 1 hour. If you didn't request this, ignore this email — your account is safe.</p>
+        <p style="color:#bbb;font-size:11px;word-break:break-all">Or copy: ${url}</p>
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0">
+        <p style="color:#aaa;font-size:11px">HorizonGET · <a href="mailto:sales@horizon-sa.net" style="color:#C98120">sales@horizon-sa.net</a></p>
+    </div>`;
+}
 
 app.use(express.json({ limit: '10mb' }));
 
@@ -110,6 +152,26 @@ async function initDB() {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         `);
 
+        /* ── Migrate: add email-verification columns if not yet present ── */
+        for (const sql of [
+            'ALTER TABLE users ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT FALSE',
+            'ALTER TABLE users ADD COLUMN verification_token VARCHAR(255) DEFAULT NULL'
+        ]) { try { await c.query(sql); } catch {} }
+
+        /* ── Migrate: mark all pre-existing users as verified ── */
+        await c.query('UPDATE users SET email_verified=TRUE WHERE verification_token IS NULL');
+
+        /* ── Password reset tokens table ── */
+        await c.query(`
+            CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                id         INT AUTO_INCREMENT PRIMARY KEY,
+                user_id    INT NOT NULL,
+                token      VARCHAR(255) NOT NULL UNIQUE,
+                expires_at DATETIME NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+
         /* ── Seed admin ── */
         const [[admin]] = await c.query('SELECT id FROM users WHERE email = ?', ['sales@horizon-sa.net']);
         if (!admin) {
@@ -128,6 +190,10 @@ async function initDB() {
                 ['Guest Merchant','Horizon Ventures','guest@horizon.com',hash,'US',
                  '+1 (555) 019-9000','456 Skyline Boulevard\nSan Francisco, CA 94107','EIN-88-2947192','free']);
         }
+
+        /* ── Ensure seeded accounts are always verified ── */
+        await c.query('UPDATE users SET email_verified=TRUE WHERE email IN (?,?)',
+            ['sales@horizon-sa.net', 'guest@horizon.com']);
 
         console.log('✅  Database ready');
     } finally {
@@ -178,13 +244,15 @@ app.post('/api/auth/register', async (req, res) => {
         const [[ex]] = await pool.query('SELECT id FROM users WHERE email=?', [email.toLowerCase()]);
         if (ex) return res.status(409).json({ error: 'Email already registered' });
 
-        const hash = await bcrypt.hash(password, 10);
-        const [result] = await pool.query(
-            'INSERT INTO users (name,company_name,email,password_hash,country,plan) VALUES (?,?,?,?,?,?)',
-            [name, companyName||'', email.toLowerCase(), hash, country||'US', plan||'free']
+        const hash        = await bcrypt.hash(password, 10);
+        const verifyToken = crypto.randomBytes(32).toString('hex');
+        const [result]    = await pool.query(
+            'INSERT INTO users (name,company_name,email,password_hash,country,plan,email_verified,verification_token) VALUES (?,?,?,?,?,?,FALSE,?)',
+            [name, companyName||'', email.toLowerCase(), hash, country||'US', plan||'free', verifyToken]
         );
-        const token = jwt.sign({ id: result.insertId, email: email.toLowerCase(), isAdmin: false }, JWT_SECRET, { expiresIn: '30d' });
-        res.json({ token, user: { id: result.insertId, name, companyName, email: email.toLowerCase(), country: country||'US', plan: plan||'free', isAdmin: false } });
+        try { await sendEmail(email, 'Verify your HorizonGET email', verifyEmailHtml(name, verifyToken)); }
+        catch (e) { console.error('Email send error:', e.message); }
+        res.json({ message: 'Account created! Check your email to verify your address before signing in.' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Registration failed' });
@@ -202,6 +270,10 @@ app.post('/api/auth/login', async (req, res) => {
 
         const valid = await bcrypt.compare(password, u.password_hash);
         if (!valid) return res.status(401).json({ error: 'Invalid email or password' });
+
+        if (!u.email_verified) {
+            return res.status(403).json({ error: 'email_not_verified', email: u.email });
+        }
 
         const token = jwt.sign({ id: u.id, email: u.email, isAdmin: !!u.is_admin }, JWT_SECRET, { expiresIn: '30d' });
         res.json({ token, user: userRow(u) });
@@ -225,6 +297,56 @@ app.put('/api/auth/me', requireAuth, async (req, res) => {
         [name, companyName, phone, address, taxId, logo, country, req.user.id]
     );
     res.json({ success: true });
+});
+
+/* Verify email */
+app.get('/api/auth/verify-email', async (req, res) => {
+    const { token } = req.query;
+    if (!token) return res.redirect(`${APP_URL}?verified=error`);
+    const [[u]] = await pool.query('SELECT id FROM users WHERE verification_token=?', [token]);
+    if (!u)     return res.redirect(`${APP_URL}?verified=error`);
+    await pool.query('UPDATE users SET email_verified=TRUE, verification_token=NULL WHERE id=?', [u.id]);
+    res.redirect(`${APP_URL}?verified=1`);
+});
+
+/* Resend verification email */
+app.post('/api/auth/resend-verification', async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+    const [[u]] = await pool.query('SELECT * FROM users WHERE email=?', [email.toLowerCase()]);
+    if (!u || u.email_verified) return res.json({ message: 'If that email exists and is unverified, a new link has been sent.' });
+    const token = crypto.randomBytes(32).toString('hex');
+    await pool.query('UPDATE users SET verification_token=? WHERE id=?', [token, u.id]);
+    try { await sendEmail(u.email, 'Verify your HorizonGET email', verifyEmailHtml(u.name, token)); } catch {}
+    res.json({ message: 'Verification email sent. Please check your inbox.' });
+});
+
+/* Forgot password */
+app.post('/api/auth/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+    const [[u]] = await pool.query('SELECT * FROM users WHERE email=?', [email.toLowerCase()]);
+    if (u) {
+        const token   = crypto.randomBytes(32).toString('hex');
+        const expires = new Date(Date.now() + 3600000); // 1 hour
+        await pool.query('DELETE FROM password_reset_tokens WHERE user_id=?', [u.id]);
+        await pool.query('INSERT INTO password_reset_tokens (user_id,token,expires_at) VALUES (?,?,?)', [u.id, token, expires]);
+        try { await sendEmail(u.email, 'Reset your HorizonGET password', resetEmailHtml(token)); } catch {}
+    }
+    res.json({ message: 'If that email is registered, a password reset link has been sent.' });
+});
+
+/* Reset password */
+app.post('/api/auth/reset-password', async (req, res) => {
+    const { token, password } = req.body;
+    if (!token || !password)    return res.status(400).json({ error: 'Token and new password required' });
+    if (password.length < 6)    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    const [[row]] = await pool.query('SELECT * FROM password_reset_tokens WHERE token=? AND expires_at > NOW()', [token]);
+    if (!row) return res.status(400).json({ error: 'Reset link is invalid or has expired. Please request a new one.' });
+    const hash = await bcrypt.hash(password, 10);
+    await pool.query('UPDATE users SET password_hash=? WHERE id=?', [hash, row.user_id]);
+    await pool.query('DELETE FROM password_reset_tokens WHERE id=?', [row.id]);
+    res.json({ message: 'Password reset successfully. You can now sign in.' });
 });
 
 /* ══════════════════════════════════════════════════════════════════════════════

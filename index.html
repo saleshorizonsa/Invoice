@@ -281,7 +281,53 @@
                     <span>Sign In</span>
                     <i data-lucide="arrow-right"></i>
                 </button>
+                <div class="auth-links">
+                    <a href="#" onclick="switchAuthTab('forgot');return false;">Forgot password?</a>
+                </div>
+                <!-- Unverified email banner -->
+                <div id="unverified-banner" class="unverified-banner hidden">
+                    <i data-lucide="mail-warning"></i>
+                    <div>
+                        <strong>Email not verified.</strong> Check your inbox for the verification link.
+                    </div>
+                    <input type="hidden" id="unverified-email">
+                    <button class="btn btn-sm btn-outline" onclick="handleResendVerification()">Resend Email</button>
+                </div>
             </form>
+
+            <!-- Forgot Password Form -->
+            <form id="forgot-form" class="auth-form hidden" onsubmit="handleForgotPassword(event)">
+                <div class="forgot-header">
+                    <i data-lucide="key-round"></i>
+                    <h3>Reset Password</h3>
+                    <p>Enter your email and we'll send you a reset link.</p>
+                </div>
+                <div class="input-group">
+                    <label for="forgot-email">Email Address</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="mail"></i>
+                        <input type="email" id="forgot-email" required placeholder="name@company.com">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i data-lucide="send"></i>
+                    <span>Send Reset Link</span>
+                </button>
+                <div class="auth-links">
+                    <a href="#" onclick="switchAuthTab('login');return false;">Back to Sign In</a>
+                </div>
+            </form>
+
+            <!-- Check Email View (shown after registration) -->
+            <div id="check-email-view" class="auth-form hidden check-email-view">
+                <div class="check-email-icon"><i data-lucide="mail-check"></i></div>
+                <h3>Check your inbox!</h3>
+                <p>We've sent a verification link to your email address. Click it to activate your account, then sign in.</p>
+                <button class="btn btn-outline btn-block" onclick="switchAuthTab('login')">
+                    <i data-lucide="log-in"></i> Go to Sign In
+                </button>
+                <p class="check-email-note">Didn't receive it? Check your spam folder or <a href="#" onclick="switchAuthTab('register');return false;">register again</a>.</p>
+            </div>
 
             <!-- Register Form -->
             <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
@@ -1232,6 +1278,37 @@
         </div>
 
     </div><!-- /#app -->
+
+    <!-- Password Reset Modal (shown when ?reset_token= is in URL) -->
+    <div id="reset-modal" class="modal-overlay hidden" style="z-index:1100">
+        <div class="modal-content glass payment-modal-card" onclick="event.stopPropagation()" style="max-width:420px">
+            <div class="payment-modal-header">
+                <div class="payment-modal-icon"><i data-lucide="key-round"></i></div>
+                <h2>Set New Password</h2>
+                <p>Enter and confirm your new password below.</p>
+            </div>
+            <form onsubmit="handleResetPassword(event)">
+                <input type="hidden" id="reset-token-input">
+                <div class="input-group">
+                    <label for="reset-password">New Password</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="reset-password" required placeholder="Minimum 6 characters">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="reset-password2">Confirm Password</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="reset-password2" required placeholder="Repeat password">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top:0.5rem">
+                    <i data-lucide="check-circle"></i> Reset Password
+                </button>
+            </form>
+        </div>
+    </div>
 
     <!-- Payment Instructions Modal (shown after paid plan registration) -->
     <div id="payment-modal" class="modal-overlay hidden" onclick="closePaymentModal(event)">

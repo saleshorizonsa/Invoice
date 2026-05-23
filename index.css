@@ -2018,3 +2018,63 @@ hr {
     cursor: pointer;
 }
 .upgrade-dismiss:hover { color: var(--text-primary); }
+
+/* ==========================================================================
+   EMAIL AUTH UI
+   ========================================================================== */
+.auth-links {
+    text-align: center;
+    margin-top: 0.75rem;
+    font-size: 0.82rem;
+}
+.auth-links a { color: var(--accent); text-decoration: none; }
+.auth-links a:hover { text-decoration: underline; }
+
+/* Unverified email banner inside login form */
+.unverified-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    background: rgba(201,129,32,0.12);
+    border: 1px solid rgba(201,129,32,0.4);
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    margin-top: 0.75rem;
+    font-size: 0.82rem;
+}
+.unverified-banner i { color: var(--accent); width: 18px; height: 18px; flex-shrink: 0; }
+.unverified-banner div { flex: 1; color: var(--text-secondary); }
+.unverified-banner strong { color: var(--text-primary); }
+
+/* Forgot password form header */
+.forgot-header {
+    text-align: center;
+    margin-bottom: 1.25rem;
+}
+.forgot-header i {
+    width: 36px; height: 36px;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+}
+.forgot-header h3 { font-size: 1.1rem; margin-bottom: 0.3rem; }
+.forgot-header p  { font-size: 0.83rem; color: var(--text-secondary); }
+
+/* Check email view */
+.check-email-view {
+    text-align: center;
+    padding: 1rem 0;
+}
+.check-email-icon {
+    width: 60px; height: 60px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+    color: #fff;
+}
+.check-email-icon i { width: 28px; height: 28px; }
+.check-email-view h3 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+.check-email-view p  { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem; }
+.check-email-note    { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.75rem; }
+.check-email-note a  { color: var(--accent); text-decoration: none; }
