@@ -28,11 +28,10 @@ function exportInvoicePDF(invoiceId = null) {
 }
 
 /**
- * Retrieves invoice object by ID from storage
+ * Retrieves invoice object by ID from in-memory cache
  */
 function getInvoiceById(invoiceId) {
-    const invoices = JSON.parse(localStorage.getItem("horizon_invoices") || "[]");
-    return invoices.find(inv => inv.id === invoiceId);
+    return _invoices.find(inv => inv.id === invoiceId) || null;
 }
 
 /**
@@ -119,36 +118,32 @@ function exportInvoiceJSON(invoiceId) {
 function exportAllInvoicesJSON() {
     const user = getActiveUser();
     if (!user) return;
-    
-    const invoices = JSON.parse(localStorage.getItem("horizon_invoices") || "[]");
-    const userInvoices = invoices.filter(inv => inv.userEmail === user.email);
-    
-    if (userInvoices.length === 0) {
+
+    if (_invoices.length === 0) {
         showToast("No invoices to export!", "alert-triangle");
         return;
     }
-    
+
     const exportData = {
-        exportedAt: new Date().toISOString(),
-        userEmail: user.email,
-        companyName: user.companyName,
-        totalInvoices: userInvoices.length,
-        invoices: userInvoices
+        exportedAt:    new Date().toISOString(),
+        userEmail:     user.email,
+        companyName:   user.companyName,
+        totalInvoices: _invoices.length,
+        invoices:      _invoices
     };
-    
+
     const jsonData = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([jsonData], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${user.companyName.replace(/\s+/g, '_')}_invoices_${new Date().toISOString().split('T')[0]}.json`;
+    const blob     = new Blob([jsonData], { type: "application/json" });
+    const url      = URL.createObjectURL(blob);
+    const link     = document.createElement("a");
+    link.href      = url;
+    link.download  = `${user.companyName.replace(/\s+/g, '_')}_invoices_${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
-    showToast(`Exported ${userInvoices.length} invoices as JSON`, "download");
+
+    showToast(`Exported ${_invoices.length} invoices as JSON`, "download");
 }
 
 // =================== CSV EXPORT (for Accounting/Excel Import) ===================
@@ -159,10 +154,8 @@ function exportAllInvoicesJSON() {
 function exportInvoicesCSV() {
     const user = getActiveUser();
     if (!user) return;
-    
-    const invoices = JSON.parse(localStorage.getItem("horizon_invoices") || "[]");
-    const userInvoices = invoices.filter(inv => inv.userEmail === user.email);
-    
+
+    const userInvoices = _invoices;
     if (userInvoices.length === 0) {
         showToast("No invoices to export!", "alert-triangle");
         return;
@@ -287,92 +280,45 @@ function exportInvoiceLineItemsCSV(invoiceId) {
 // =================== LOCAL DATA BACKUP & RESTORE ===================
 
 /**
- * Export complete local storage backup (all user data)
+ * Export invoice + client data backup as JSON
  */
 function exportLocalDataBackup() {
+    const user = getActiveUser();
     const backupData = {
         exportedAt: new Date().toISOString(),
-        appVersion: "1.0.0",
-        users: JSON.parse(localStorage.getItem("horizon_users") || "[]"),
-        invoices: JSON.parse(localStorage.getItem("horizon_invoices") || "[]"),
-        clients: JSON.parse(localStorage.getItem("horizon_clients") || "[]"),
-        settings: JSON.parse(localStorage.getItem("horizon_settings") || "{}"),
-        theme: localStorage.getItem("horizon_theme") || "dark"
+        appVersion: "2.0.0",
+        user:       { name: user?.name, companyName: user?.companyName, email: user?.email },
+        invoices:   _invoices,
+        clients:    _clients,
+        theme:      localStorage.getItem("horizon_theme") || "dark"
     };
-    
+
     const jsonData = JSON.stringify(backupData, null, 2);
-    const blob = new Blob([jsonData], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `horizonget_backup_${new Date().toISOString().split('T')[0]}.json`;
+    const blob     = new Blob([jsonData], { type: "application/json" });
+    const url      = URL.createObjectURL(blob);
+    const link     = document.createElement("a");
+    link.href      = url;
+    link.download  = `horizonget_backup_${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
-    showToast("Complete backup exported successfully!", "download");
+    showToast("Backup exported successfully!", "download");
 }
 
 /**
- * Import local storage backup from file
+ * Not supported in cloud mode
  */
-function importLocalDataBackup(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const backupData = JSON.parse(e.target.result);
-            
-            // Validate backup structure
-            if (!backupData.exportedAt || !backupData.appVersion) {
-                showToast("Invalid backup file format!", "alert-triangle");
-                return;
-            }
-            
-            // Confirm import
-            if (!confirm("This will REPLACE all your local data. Continue?")) {
-                return;
-            }
-            
-            // Restore all data
-            localStorage.setItem("horizon_users", JSON.stringify(backupData.users || []));
-            localStorage.setItem("horizon_invoices", JSON.stringify(backupData.invoices || []));
-            localStorage.setItem("horizon_clients", JSON.stringify(backupData.clients || []));
-            localStorage.setItem("horizon_settings", JSON.stringify(backupData.settings || {}));
-            
-            if (backupData.theme) {
-                localStorage.setItem("horizon_theme", backupData.theme);
-            }
-            
-            showToast("Data restored from backup! Reloading...", "check-circle");
-            setTimeout(() => location.reload(), 1500);
-            
-        } catch (error) {
-            showToast("Error reading backup file: " + error.message, "x-circle");
-        }
-    };
-    
-    reader.readAsText(file);
+function importLocalDataBackup() {
+    showToast("Data import is not available in cloud mode. Use the API.", "info");
 }
 
 /**
- * Wipe all local storage data with confirmation
+ * Sign out (data is safe in the cloud)
  */
 function wipeAllLocalData() {
-    const confirmMsg = "⚠️ WARNING: This will DELETE ALL invoices, clients, and settings from your browser. This action CANNOT be undone. Type 'DELETE' to confirm.";
-    const confirmation = prompt(confirmMsg);
-    
-    if (confirmation === "DELETE") {
-        localStorage.clear();
-        showToast("All local data has been wiped. Reloading...", "check-circle");
-        setTimeout(() => location.reload(), 1500);
-    } else {
-        showToast("Data wipe cancelled", "x-circle");
-    }
+    if (!confirm("This will sign you out. Your data remains securely stored in the cloud.")) return;
+    handleLogout();
 }
 
 // =================== ACTION BUTTONS FOR HISTORY TABLE ===================
