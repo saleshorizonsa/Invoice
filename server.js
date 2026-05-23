@@ -14,7 +14,7 @@ const APP_URL    = process.env.APP_URL    || 'https://invoice.horizon-sa.net';
 
 /* ── Email transporter ──────────────────────────────────────────────────────── */
 const mailer = nodemailer.createTransport({
-    host:   process.env.SMTP_HOST || 'smtp.hostinger.com',
+    host:   process.env.SMTP_HOST || 'smtp.zoho.com',
     port:   parseInt(process.env.SMTP_PORT || '465'),
     secure: parseInt(process.env.SMTP_PORT || '465') === 465,
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
